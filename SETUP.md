@@ -29,9 +29,22 @@ Your site now has an admin page (`admin.html`) where you can log in and edit you
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAnalyticsWrite() {
+      return request.resource.data.diff(resource == null ? {} : resource.data).affectedKeys()
+        .hasOnly(['visits', 'linkedinClicks', 'githubClicks', 'cvDownloads']);
+    }
+
     match /portfolio/{docId} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.token.email == 'talhakazmi301@gmail.com';
+    }
+
+    match /analytics/{dateId} {
+      // Visitors can only bump the 4 known counters (used for the admin dashboard's
+      // visit/click stats) — they can never read this data back or write anything else.
+      allow read: if request.auth != null && request.auth.token.email == 'talhakazmi301@gmail.com';
+      allow create, update: if isAnalyticsWrite();
+      allow delete: if false;
     }
   }
 }
@@ -39,7 +52,9 @@ service cloud.firestore {
 
 4. Click **Publish**.
 
-This means: anyone can view your portfolio content, but only your logged-in account can edit it.
+This means: anyone can view your portfolio content, but only your logged-in account can edit it or read the analytics counters. Visitors can only increment the 4 specific analytics fields — they can't read them back or write anything else to that collection.
+
+Like the Cloudinary preset, this is client-side counting: someone could technically inflate the numbers by calling the increment repeatedly. Fine for a personal portfolio's vanity metrics — just don't treat them as audited traffic data.
 
 ## 5. Set up Cloudinary (for your profile photo and certification uploads)
 

@@ -159,6 +159,23 @@
   .dash-stat .num.small{font-size:15px;}
   .dash-stat .lbl{font-size:11px;color:var(--text-dim);margin-top:6px;letter-spacing:0.3px;}
 
+  /* Analytics */
+  .analytics-charts{display:grid;grid-template-columns:1.6fr 1fr;gap:28px;margin-top:24px;align-items:start;}
+  @media (max-width:760px){ .analytics-charts{grid-template-columns:1fr;} }
+  .chart-block-title{font-size:11px;color:var(--text-dim);letter-spacing:0.4px;margin-bottom:14px;text-transform:uppercase;}
+  .bar-chart{display:flex;align-items:flex-end;gap:3px;height:150px;border-bottom:1px solid var(--border);padding-bottom:1px;}
+  .bar-chart .bar{flex:1;min-width:2px;background:var(--green);border-radius:2px 2px 0 0;opacity:0.85;transition:opacity .15s,transform .15s;cursor:default;}
+  .bar-chart .bar:hover{opacity:1;transform:scaleY(1.02);}
+  .bar-chart .bar.bar-empty{background:var(--border-hi);opacity:0.5;}
+  .bar-chart-labels{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-dim);margin-top:6px;}
+  .donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .donut{width:132px;height:132px;border-radius:50%;flex-shrink:0;background:var(--border);}
+  .donut-legend{display:flex;flex-direction:column;gap:9px;font-size:12.5px;}
+  .donut-legend .row{display:flex;align-items:center;gap:9px;color:var(--text);}
+  .donut-legend .sw{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+  .donut-legend .row b{color:var(--white);}
+  .analytics-empty{color:var(--text-dim);font-size:12.5px;padding:10px 0;}
+
   /* Cards */
   .card{
     border:1px solid var(--border);background:var(--panel);border-radius:10px;
@@ -281,6 +298,14 @@
       <h1>Dashboard</h1>
       <div class="sub">Overview of your live portfolio content.</div>
       <div class="dash-stats" id="dashStats"></div>
+
+      <div class="card">
+        <h2>Traffic &amp; Engagement</h2>
+        <div class="hint">Visitor-side counters — visits, and clicks on your GitHub, LinkedIn and CV links (button clicks and the terminal's <code>open</code> command both count).</div>
+        <div class="dash-stats" id="analyticsStats" style="margin-top:18px;"></div>
+        <div id="analyticsCharts"></div>
+      </div>
+
       <div class="card">
         <h2>Quick actions</h2>
         <div class="hint">Jump straight into editing.</div>
@@ -429,7 +454,7 @@ import {
   getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc
+  getFirestore, doc, getDoc, setDoc, collection, getDocs
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
@@ -587,6 +612,105 @@ function renderDashboard(){
     <div class="dash-stat"><div class="num">${state.skills.length}</div><div class="lbl">SKILLS LISTED</div></div>
     <div class="dash-stat"><div class="num">${state.bio.length}</div><div class="lbl">BIO PARAGRAPHS</div></div>
     <div class="dash-stat"><div class="num small">${availLabel}</div><div class="lbl">AVAILABILITY</div></div>
+  `;
+}
+
+async function loadAndRenderAnalytics(){
+  const statsEl = document.getElementById('analyticsStats');
+  const chartsEl = document.getElementById('analyticsCharts');
+  statsEl.innerHTML = `
+    <div class="dash-stat"><div class="num small">…</div><div class="lbl">TOTAL VISITS</div></div>
+    <div class="dash-stat"><div class="num small">…</div><div class="lbl">LINKEDIN CLICKS</div></div>
+    <div class="dash-stat"><div class="num small">…</div><div class="lbl">GITHUB CLICKS</div></div>
+    <div class="dash-stat"><div class="num small">…</div><div class="lbl">CV DOWNLOADS</div></div>
+  `;
+  chartsEl.innerHTML = '';
+
+  let docs = [];
+  try{
+    const snap = await getDocs(collection(db, 'analytics'));
+    snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+  }catch(e){
+    statsEl.innerHTML = `<div class="analytics-empty">Couldn't load analytics: ${escHtml(e.message || 'unknown error')}</div>`;
+    return;
+  }
+
+  const totals = { visits: 0, linkedinClicks: 0, githubClicks: 0, cvDownloads: 0 };
+  docs.forEach(d => {
+    totals.visits += d.visits || 0;
+    totals.linkedinClicks += d.linkedinClicks || 0;
+    totals.githubClicks += d.githubClicks || 0;
+    totals.cvDownloads += d.cvDownloads || 0;
+  });
+
+  statsEl.innerHTML = `
+    <div class="dash-stat"><div class="num">${totals.visits}</div><div class="lbl">TOTAL VISITS</div></div>
+    <div class="dash-stat"><div class="num">${totals.linkedinClicks}</div><div class="lbl">LINKEDIN CLICKS</div></div>
+    <div class="dash-stat"><div class="num">${totals.githubClicks}</div><div class="lbl">GITHUB CLICKS</div></div>
+    <div class="dash-stat"><div class="num">${totals.cvDownloads}</div><div class="lbl">CV DOWNLOADS</div></div>
+  `;
+
+  if(!docs.length){
+    chartsEl.innerHTML = '<div class="analytics-empty" style="margin-top:20px;">No traffic recorded yet — numbers will start showing up once people visit your live site.</div>';
+    return;
+  }
+
+  // ---- bar chart: visits per day, last 30 days ----
+  const days = [];
+  for(let i = 29; i >= 0; i--){
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const id = d.toISOString().slice(0, 10);
+    const match = docs.find(x => x.id === id);
+    days.push({ id, visits: (match && match.visits) || 0 });
+  }
+  const maxVisits = Math.max(1, ...days.map(d => d.visits));
+  const barsHtml = days.map(d => {
+    const pct = Math.max(3, Math.round((d.visits / maxVisits) * 100));
+    const cls = d.visits > 0 ? 'bar' : 'bar bar-empty';
+    return `<div class="${cls}" style="height:${pct}%" title="${d.id}: ${d.visits} visit${d.visits === 1 ? '' : 's'}"></div>`;
+  }).join('');
+
+  // ---- donut: click breakdown ----
+  const clickTotal = totals.linkedinClicks + totals.githubClicks + totals.cvDownloads;
+  let donutHtml, legendHtml;
+  if(clickTotal === 0){
+    donutHtml = `<div class="donut"></div>`;
+    legendHtml = `<div class="analytics-empty">No clicks recorded yet</div>`;
+  } else {
+    const segs = [
+      { label: 'LinkedIn', val: totals.linkedinClicks, color: 'var(--green)' },
+      { label: 'GitHub', val: totals.githubClicks, color: 'var(--green-soft)' },
+      { label: 'CV Downloads', val: totals.cvDownloads, color: 'var(--green-dim)' }
+    ];
+    let acc = 0;
+    const stops = segs.map(s => {
+      const from = (acc / clickTotal) * 100;
+      acc += s.val;
+      const to = (acc / clickTotal) * 100;
+      return `${s.color} ${from}% ${to}%`;
+    }).join(', ');
+    donutHtml = `<div class="donut" style="background:conic-gradient(${stops});"></div>`;
+    legendHtml = segs.map(s => `
+      <div class="row"><span class="sw" style="background:${s.color}"></span> ${s.label}: <b>${s.val}</b></div>
+    `).join('');
+  }
+
+  chartsEl.innerHTML = `
+    <div class="analytics-charts">
+      <div class="chart-block">
+        <div class="chart-block-title">Visits — last 30 days</div>
+        <div class="bar-chart">${barsHtml}</div>
+        <div class="bar-chart-labels"><span>${days[0].id}</span><span>${days[days.length - 1].id}</span></div>
+      </div>
+      <div class="chart-block">
+        <div class="chart-block-title">Click breakdown</div>
+        <div class="donut-wrap">
+          ${donutHtml}
+          <div class="donut-legend">${legendHtml}</div>
+        </div>
+      </div>
+    </div>
   `;
 }
 
@@ -835,6 +959,9 @@ function renderProjects(){
 }
 function renderAll(){ renderDashboard(); renderTheme(); renderPhoto(); renderCV(); renderAvailability(); renderExperience(); renderCertifications(); renderBio(); renderSkills(); renderProjects(); }
 function escAttr(str){ return String(str ?? '').replace(/"/g,'&quot;'); }
+function escHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 document.addEventListener('input', (e) => {
   const f = e.target.dataset.field;
@@ -869,6 +996,7 @@ document.getElementById('loadDefaults').onclick = () => {
 
 document.getElementById('reloadLive').onclick = async () => {
   await loadFromFirestore();
+  loadAndRenderAnalytics();
   setSaveStatus('Reloaded from live site.', false);
 };
 
@@ -921,6 +1049,7 @@ onAuthStateChanged(auth, async (user) => {
     await loadFromFirestore();
     // reveal only once the dashboard actually has data — no flash of an empty shell
     if(window.hideAdminLoader) window.hideAdminLoader();
+    loadAndRenderAnalytics(); // fire-and-forget — shouldn't block the dashboard reveal
   } else {
     document.getElementById('app').style.display = 'none';
     document.getElementById('loginBox').style.display = 'block';

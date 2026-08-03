@@ -753,8 +753,8 @@
       <p style="color:var(--text);font-size:14px;max-width:520px;">Open to new opportunities and collaborations across backend systems, microservices, and integration engineering — reach out any time.</p>
       <div class="contact-links">
         <a href="mailto:talhakazmi301@gmail.com" class="btn solid">✉ talhakazmi301@gmail.com</a>
-        <a href="https://github.com/Talhakazmii" target="_blank" rel="noopener" class="btn">⌥ GitHub</a>
-        <a href="https://www.linkedin.com/in/syed-talha-ahmed-kazmi-054184284/" target="_blank" rel="noopener" class="btn">in LinkedIn</a>
+        <a href="https://github.com/Talhakazmii" id="githubLink" target="_blank" rel="noopener" class="btn">⌥ GitHub</a>
+        <a href="https://www.linkedin.com/in/syed-talha-ahmed-kazmi-054184284/" id="linkedinLink" target="_blank" rel="noopener" class="btn">in LinkedIn</a>
       </div>
     </div>
   </div>
@@ -1314,6 +1314,13 @@ drawNetwork();
   let loginFlow = null; // null | {step:'username'} | {step:'password', username}
 
   function startLogin(){
+    const who = window.terminalCurrentUser && window.terminalCurrentUser();
+    if(who){
+      printLine(`<span style="color:var(--green)">✓ already logged in as ${escHtml(who)}</span>`);
+      printLine('<span style="color:var(--green)">→ redirecting to admin console…</span>');
+      setTimeout(() => { window.location.href = 'admin.html'; }, 700);
+      return;
+    }
     loginFlow = { step: 'username' };
     printLine('<span style="color:var(--cyan)">Username:</span>');
     input.placeholder = 'username (or type cancel)';
@@ -1460,6 +1467,7 @@ drawNetwork();
         const cvBtn = document.getElementById('cvBtn');
         if(cvBtn && cvBtn.style.display !== 'none' && cvBtn.getAttribute('href') !== '#'){
           window.open(cvBtn.href, '_blank');
+          if(window.trackEvent) window.trackEvent('cvDownloads');
           printLine('<span style="color:var(--green)">→ opening CV</span>');
         } else {
           printLine('<span style="color:var(--amber)">no CV uploaded yet</span>');
@@ -1470,8 +1478,10 @@ drawNetwork();
         github: 'https://github.com/Talhakazmii',
         linkedin: 'https://www.linkedin.com/in/syed-talha-ahmed-kazmi-054184284/'
       };
+      const trackKey = { github: 'githubClicks', linkedin: 'linkedinClicks' };
       if(links[key]){
         window.open(links[key], '_blank');
+        if(window.trackEvent && trackKey[key]) window.trackEvent(trackKey[key]);
         printLine(`<span style="color:var(--green)">→ opening ${key}</span>`);
       } else {
         printLine(`<span style="color:var(--amber)">unknown target: ${escHtml(key)} — try --help</span>`);
@@ -1499,7 +1509,7 @@ drawNetwork();
 <script src="firebase-config.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
   let fbApp = null;
@@ -1507,6 +1517,26 @@ drawNetwork();
     if(!fbApp) fbApp = initializeApp(window.FIREBASE_CONFIG);
     return fbApp;
   }
+
+  /* ---------- lightweight analytics: one counter doc per day in Firestore ----------
+     Firestore rules only need to let anyone bump these specific fields (see SETUP.md);
+     reading them back is restricted to the admin account. Never lets a failure here
+     break the actual site. */
+  function todayId(){
+    return new Date().toISOString().slice(0, 10);
+  }
+  window.trackEvent = async function(field){
+    if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') return;
+    try{
+      const db = getFirestore(getFbApp());
+      await setDoc(doc(db, 'analytics', todayId()), { [field]: increment(1) }, { merge: true });
+    }catch(e){ /* analytics is best-effort — never surface this to the visitor */ }
+  };
+
+  window.trackEvent('visits');
+  document.getElementById('githubLink')?.addEventListener('click', () => window.trackEvent('githubClicks'));
+  document.getElementById('linkedinLink')?.addEventListener('click', () => window.trackEvent('linkedinClicks'));
+  document.getElementById('cvBtn')?.addEventListener('click', () => window.trackEvent('cvDownloads'));
 
   /* used by the hero terminal's `login` command */
   window.terminalLogin = async function(email, password){
