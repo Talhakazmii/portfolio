@@ -276,6 +276,8 @@
   .btn.solid:hover{background:var(--green-soft);box-shadow:0 8px 28px -6px rgba(var(--net-dot),0.55);}
   .btn.nav-signin{padding:7px 16px;font-size:12px;border-color:var(--green-dim);color:var(--green);}
   .btn.nav-signin:hover{background:rgba(var(--net-dot),0.08);border-color:var(--green);}
+  .btn.nav-signin.signed-in{background:var(--green);color:#04160c;font-weight:700;border-color:var(--green);}
+  .btn.nav-signin.signed-in:hover{background:var(--green-soft);}
 
   .term-window{
     border:1px solid var(--border-hi);
@@ -285,21 +287,57 @@
     box-shadow:0 20px 60px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(var(--net-dot),0.03);
     overflow:hidden;
     max-width:640px;
+    transition:box-shadow .3s;
   }
   .term-bar{
     display:flex;align-items:center;gap:8px;padding:10px 14px;
     background:#0c1310;border-bottom:1px solid var(--border);
   }
-  .dot{width:11px;height:11px;border-radius:50%;}
+  .dot{width:11px;height:11px;border-radius:50%;cursor:pointer;border:none;padding:0;position:relative;transition:filter .15s;}
+  .dot:hover{filter:brightness(1.3);}
   .dot.red{background:#ff5f56;}
   .dot.yellow{background:#ffbd2e;}
   .dot.green{background:#27c93f;}
   .term-title{margin-left:8px;color:var(--text-dim);font-size:11.5px;}
-  .term-body{padding:20px 20px 24px;font-size:13px;min-height:190px;}
+  .term-body{padding:20px 20px 24px;font-size:13px;min-height:190px;max-height:260px;overflow-y:auto;scroll-behavior:smooth;}
   .term-line{margin-bottom:4px;color:var(--text-dim);}
   .term-line .p1{color:var(--green-dim);}
   .term-line .p2{color:var(--cyan);}
   .type-out{color:var(--green-soft);white-space:pre-wrap;}
+  .term-prompt-line{display:flex;align-items:center;flex-wrap:nowrap;}
+  .term-input{
+    flex:1;min-width:0;background:transparent;border:none;outline:none;
+    color:var(--green-soft);font-family:'JetBrains Mono',monospace;font-size:13px;
+    caret-color:var(--green);padding:0;margin-left:6px;
+  }
+  .term-input::placeholder{color:var(--text-dim);opacity:0.6;}
+
+  .term-window.floating{
+    position:fixed;z-index:245;
+    width:min(1040px,94vw);max-width:none;
+    box-shadow:0 50px 120px -20px rgba(0,0,0,0.9);
+  }
+  .term-window.floating .term-bar{cursor:move;}
+  .term-window.floating .term-body{max-height:72vh;min-height:400px;padding:26px 28px 30px;font-size:14.5px;}
+  .term-min-icon{
+    position:fixed;bottom:24px;right:24px;z-index:260;
+    width:52px;height:52px;border-radius:50%;
+    background:var(--panel-solid);border:1px solid var(--border-hi);
+    color:var(--green);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;
+    align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:0 8px 24px -6px rgba(0,0,0,0.5), 0 0 20px rgba(var(--net-dot),0.15);
+    transition:transform .2s;display:none;
+  }
+  .term-min-icon:hover{transform:scale(1.08);}
+  .term-min-icon.show{display:flex;}
+  .term-min-icon.pop{animation:termIconPop .38s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes termIconPop{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+  .term-window.term-anim{
+    transition:transform .48s cubic-bezier(.65,0,.35,1), opacity .4s ease, border-radius .48s ease;
+    transform-origin:center center;
+    will-change:transform,opacity;
+  }
 
   /* Section shared */
   section{padding:90px 0;border-top:1px solid var(--border);position:relative;}
@@ -484,7 +522,7 @@
         <a href="#certifications" data-nav>certifications</a>
         <a href="#contact" data-nav>contact</a>
       </div>
-      <a href="admin.html" class="btn nav-signin">Sign In</a>
+      <a href="admin.html" class="btn nav-signin" id="navSignIn">Sign In</a>
     </div>
   </div>
 </nav>
@@ -518,18 +556,26 @@
           <a href="#" id="cvBtn" class="btn" style="display:none;" target="_blank" rel="noopener">⬇ Download CV</a>
         </div>
 
-        <div class="term-window">
+        <span id="termAnchor" style="display:none"></span>
+        <div class="term-window" id="termWindow">
           <div class="term-bar">
-            <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+            <button class="dot red" id="termCloseBtn" title="Reset" aria-label="Reset terminal"></button>
+            <button class="dot yellow" id="termMinBtn" title="Minimize" aria-label="Minimize terminal"></button>
+            <button class="dot green" id="termMaxBtn" title="Maximize" aria-label="Maximize terminal"></button>
             <div class="term-title">talha@portfolio — zsh — 80×20</div>
           </div>
-          <div class="term-body">
-            <div class="term-line"><span class="p1">talha@dev</span> <span class="p2">~</span> % git log --oneline -4</div>
-            <div class="term-line">a1f3c9d <span class="type-out" id="l1"></span></div>
-            <div class="term-line">7c02e11 <span class="type-out" id="l2"></span></div>
-            <div class="term-line">e59ab04 <span class="type-out" id="l3"></span></div>
-            <div class="term-line">3ff10bd <span class="type-out" id="l4"></span></div>
-            <div class="term-line" style="margin-top:10px;"><span class="p1">talha@dev</span> <span class="p2">~</span> % <span class="caret" style="background:var(--green)"></span></div>
+          <div class="term-body" id="termBody">
+            <div id="termOutput">
+              <div class="term-line"><span class="p1">talha@dev</span> <span class="p2">~</span> % git log --oneline -4</div>
+              <div class="term-line">a1f3c9d <span class="type-out" id="l1"></span></div>
+              <div class="term-line">7c02e11 <span class="type-out" id="l2"></span></div>
+              <div class="term-line">e59ab04 <span class="type-out" id="l3"></span></div>
+              <div class="term-line">3ff10bd <span class="type-out" id="l4"></span></div>
+            </div>
+            <div class="term-line term-prompt-line" style="margin-top:10px;">
+              <span class="p1">talha@dev</span>&nbsp;<span class="p2">~</span>&nbsp;%
+              <input type="text" id="termInput" class="term-input" autocomplete="off" spellcheck="false" placeholder="try --help">
+            </div>
           </div>
         </div>
       </div>
@@ -537,6 +583,8 @@
     </div>
   </div>
 </header>
+
+<button class="term-min-icon" id="termMinIcon" title="Restore terminal" aria-label="Restore terminal">&lt;/&gt;</button>
 
 <!-- Experience detail modal -->
 <div class="exp-modal-backdrop" id="expModalBackdrop">
@@ -907,6 +955,394 @@ function drawNetwork(){
   requestAnimationFrame(drawNetwork);
 }
 drawNetwork();
+
+/* ---------- interactive terminal ---------- */
+(function(){
+  const win = document.getElementById('termWindow');
+  const anchor = document.getElementById('termAnchor');
+  const body = document.getElementById('termBody');
+  const output = document.getElementById('termOutput');
+  const input = document.getElementById('termInput');
+  const minIcon = document.getElementById('termMinIcon');
+  const bar = win.querySelector('.term-bar');
+
+  function popOut(){
+    if(win.parentNode !== document.body) document.body.appendChild(win);
+    win.classList.add('floating');
+    win.classList.remove('term-anim');
+    win.style.width = '';
+    win.style.margin = '';
+    win.style.zIndex = '';
+    win.style.transform = '';
+    win.style.opacity = '';
+    win.style.transformOrigin = '';
+    if(!win.dataset.positioned){
+      const w = Math.min(1040, window.innerWidth * 0.94);
+      win.style.left = Math.max(16, (window.innerWidth - w) / 2) + 'px';
+      win.style.top = Math.max(24, window.innerHeight * 0.06) + 'px';
+      win.dataset.positioned = '1';
+    }
+  }
+  function dockBack(){
+    win.classList.remove('floating', 'term-anim');
+    win.style.position = '';
+    win.style.left = '';
+    win.style.top = '';
+    win.style.width = '';
+    win.style.margin = '';
+    win.style.zIndex = '';
+    win.style.transform = '';
+    win.style.opacity = '';
+    win.style.transformOrigin = '';
+    delete win.dataset.positioned;
+    if(win.parentNode !== anchor.parentNode || win.previousElementSibling !== anchor){
+      anchor.after(win);
+    }
+  }
+
+  function iconTarget(){
+    return { x: window.innerWidth - 24 - 26, y: window.innerHeight - 24 - 26 };
+  }
+
+  function animateMinimize(){
+    if(win.style.display === 'none' || win.classList.contains('term-anim')) return;
+    const wasFloating = win.classList.contains('floating');
+    const rect = win.getBoundingClientRect();
+    const t = iconTarget();
+    const dx = t.x - (rect.left + rect.width/2);
+    const dy = t.y - (rect.top + rect.height/2);
+
+    win.style.position = 'fixed';
+    win.style.left = rect.left + 'px';
+    win.style.top = rect.top + 'px';
+    win.style.width = rect.width + 'px';
+    win.style.margin = '0';
+    win.style.zIndex = '245';
+    win.style.transform = 'translate(0,0) scale(1)';
+    win.style.opacity = '1';
+    win.style.borderRadius = '10px';
+    void win.offsetWidth;
+    win.classList.add('term-anim');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      win.style.transform = `translate(${dx}px,${dy}px) scale(0.035)`;
+      win.style.opacity = '0';
+      win.style.borderRadius = '50%';
+    }));
+
+    const done = (e) => {
+      if(e && e.target !== win) return;
+      win.removeEventListener('transitionend', done);
+      win.style.display = 'none';
+      win.classList.remove('term-anim');
+      win.style.transform = '';
+      win.style.opacity = '';
+      win.style.borderRadius = '';
+      win.style.width = '';
+      win.style.margin = '';
+      win.style.zIndex = '';
+      if(!wasFloating){
+        win.style.position = '';
+        win.style.left = '';
+        win.style.top = '';
+      }
+      minIcon.classList.remove('pop');
+      minIcon.classList.add('show');
+      void minIcon.offsetWidth;
+      minIcon.classList.add('pop');
+    };
+    win.addEventListener('transitionend', done);
+    setTimeout(() => done(), 560);
+  }
+
+  function animateRestore(){
+    if(win.style.display !== 'none' || win.classList.contains('term-anim')) return;
+    minIcon.classList.remove('show');
+    let wasFloating = win.classList.contains('floating');
+
+    /* if it's docked (in-flow, in the hero) but that spot is currently off-screen
+       because the page is scrolled elsewhere, pop it out onto the current screen
+       instead of restoring somewhere the user can't see */
+    if(!wasFloating){
+      win.style.display = '';
+      const testRect = win.getBoundingClientRect();
+      const visible = testRect.bottom > 40 && testRect.top < window.innerHeight - 40;
+      win.style.display = 'none';
+      if(!visible){
+        popOut();
+        wasFloating = true;
+      }
+    }
+
+    win.style.display = '';
+    const rect = win.getBoundingClientRect();
+    const t = iconTarget();
+    const dx = t.x - (rect.left + rect.width/2);
+    const dy = t.y - (rect.top + rect.height/2);
+
+    win.style.position = 'fixed';
+    win.style.left = rect.left + 'px';
+    win.style.top = rect.top + 'px';
+    win.style.width = rect.width + 'px';
+    win.style.margin = '0';
+    win.style.zIndex = '245';
+    win.style.transform = `translate(${dx}px,${dy}px) scale(0.035)`;
+    win.style.opacity = '0';
+    win.style.borderRadius = '50%';
+    void win.offsetWidth;
+    win.classList.add('term-anim');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      win.style.transform = 'translate(0,0) scale(1)';
+      win.style.opacity = '1';
+      win.style.borderRadius = '10px';
+    }));
+
+    const done = (e) => {
+      if(e && e.target !== win) return;
+      win.removeEventListener('transitionend', done);
+      win.classList.remove('term-anim');
+      win.style.transform = '';
+      win.style.opacity = '';
+      win.style.borderRadius = '';
+      win.style.width = '';
+      win.style.margin = '';
+      win.style.zIndex = '';
+      if(!wasFloating){
+        win.style.position = '';
+        win.style.left = '';
+        win.style.top = '';
+      }
+      if(input && document.activeElement !== input) input.focus();
+    };
+    win.addEventListener('transitionend', done);
+    setTimeout(() => done(), 580);
+  }
+
+  function setTermState(state){
+    minIcon.classList.remove('show');
+    if(state === 'minimized'){
+      animateMinimize();
+    } else if(state === 'floating'){
+      win.style.display = '';
+      popOut();
+      setTimeout(() => input.focus(), 50);
+    } else {
+      win.style.display = '';
+      dockBack();
+    }
+  }
+
+  document.getElementById('termCloseBtn').addEventListener('click', () => setTermState('normal'));
+  document.getElementById('termMinBtn').addEventListener('click', () => setTermState('minimized'));
+  document.getElementById('termMaxBtn').addEventListener('click', () => setTermState('floating'));
+  minIcon.addEventListener('click', animateRestore);
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && win.classList.contains('floating') && win.style.display !== 'none') setTermState('normal');
+  });
+  body.addEventListener('click', (e) => {
+    if(!e.target.closest('.dot')) input.focus();
+  });
+
+  /* drag the floating window by its title bar */
+  let dragging = false, offX = 0, offY = 0;
+  bar.addEventListener('mousedown', (e) => {
+    if(!win.classList.contains('floating') || e.target.closest('.dot')) return;
+    dragging = true;
+    const rect = win.getBoundingClientRect();
+    offX = e.clientX - rect.left;
+    offY = e.clientY - rect.top;
+    document.body.style.userSelect = 'none';
+  });
+  document.addEventListener('mousemove', (e) => {
+    if(!dragging) return;
+    let nx = e.clientX - offX, ny = e.clientY - offY;
+    nx = Math.max(0, Math.min(window.innerWidth - win.offsetWidth, nx));
+    ny = Math.max(0, Math.min(window.innerHeight - win.offsetHeight, ny));
+    win.style.left = nx + 'px';
+    win.style.top = ny + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    dragging = false;
+    document.body.style.userSelect = '';
+  });
+
+  const SECTIONS = {
+    about: 'about', skills: 'skills', projects: 'projects',
+    certifications: 'certifications', certs: 'certifications',
+    experience: null, contact: 'contact', home: null, top: null
+  };
+
+  const HELP_LINES = [
+    '--help                  list available commands',
+    'go &lt;section&gt;            jump to a section — about, skills, projects, certifications, contact, home',
+    'whoami                  short bio one-liner',
+    'open github             open GitHub profile',
+    'open linkedin           open LinkedIn profile',
+    'open cv                 open/download CV (if uploaded)',
+    'login                   sign in to the admin console',
+    'logout                  sign out of the admin console',
+    'clear                   clear the terminal screen'
+  ];
+
+  function printLine(html){
+    const line = document.createElement('div');
+    line.className = 'term-line';
+    line.innerHTML = html;
+    output.appendChild(line);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  /* ---- login prompt flow: `login` asks for username, then password ---- */
+  let loginFlow = null; // null | {step:'username'} | {step:'password', username}
+
+  function startLogin(){
+    loginFlow = { step: 'username' };
+    printLine('<span style="color:var(--cyan)">Username:</span>');
+    input.placeholder = 'username (or type cancel)';
+  }
+
+  function cancelLogin(){
+    loginFlow = null;
+    input.type = 'text';
+    input.placeholder = 'try --help';
+    printLine('<span style="color:var(--amber)">login cancelled</span>');
+  }
+
+  async function attemptLogin(username, password){
+    printLine('<span style="color:var(--text-dim)">authenticating…</span>');
+    if(!window.terminalLogin){
+      printLine('<span style="color:var(--amber)">login isn\'t ready yet — try again in a moment</span>');
+      return;
+    }
+    const res = await window.terminalLogin(username, password);
+    if(res.ok){
+      printLine(`<span style="color:var(--green)">✓ access granted — welcome back, ${escHtml(res.email)}</span>`);
+      printLine('<span style="color:var(--green)">→ redirecting to admin console…</span>');
+      setTimeout(() => { window.location.href = 'admin.html'; }, 900);
+    } else {
+      printLine(`<span style="color:var(--amber)">✗ access denied: ${escHtml(res.message || 'invalid username or password')}</span>`);
+    }
+  }
+
+  async function runLogout(){
+    if(!window.terminalLogout){
+      printLine('<span style="color:var(--amber)">logout isn\'t ready yet — try again in a moment</span>');
+      return;
+    }
+    const res = await window.terminalLogout();
+    if(res.ok){
+      printLine(`<span style="color:var(--green)">✓ logged out${res.email ? ' (' + escHtml(res.email) + ')' : ''}</span>`);
+    } else {
+      printLine(`<span style="color:var(--amber)">${escHtml(res.message || 'could not log out')}</span>`);
+    }
+  }
+
+  function handleLoginStep(val){
+    if(val.trim().toLowerCase() === 'cancel'){ cancelLogin(); return; }
+
+    if(loginFlow.step === 'username'){
+      printLine(`<span class="p2">Username:</span> ${escHtml(val)}`);
+      loginFlow = { step: 'password', username: val.trim() };
+      printLine('<span style="color:var(--cyan)">Password:</span>');
+      input.type = 'password';
+      input.placeholder = '(hidden — type cancel to abort)';
+      return;
+    }
+    if(loginFlow.step === 'password'){
+      const password = val;
+      printLine(`<span class="p2">Password:</span> ${password ? '•'.repeat(Math.min(password.length, 24)) : ''}`);
+      input.type = 'text';
+      input.placeholder = 'try --help';
+      const username = loginFlow.username;
+      loginFlow = null;
+      attemptLogin(username, password);
+      return;
+    }
+  }
+
+  function runCommand(raw){
+    const cmd = raw.trim();
+    if(!cmd) return;
+    printLine(`<span class="p1">talha@dev</span> <span class="p2">~</span> % ${escHtml(cmd)}`);
+    const parts = cmd.split(/\s+/);
+    const head = parts[0].toLowerCase();
+
+    if(head === '--help' || head === 'help'){
+      HELP_LINES.forEach(l => printLine(`<span style="color:var(--text-dim)">${l}</span>`));
+      return;
+    }
+    if(head === 'clear'){
+      output.innerHTML = '';
+      return;
+    }
+    if(head === 'login'){
+      startLogin();
+      return;
+    }
+    if(head === 'logout'){
+      runLogout();
+      return;
+    }
+    if(head === 'whoami'){
+      printLine('<span class="type-out">Syed Talha Ahmed Kazmi — Associate Software Engineer (.NET · Clean Architecture · gRPC · SAP EDI)</span>');
+      return;
+    }
+    if(head === 'go' && parts[1]){
+      const key = parts[1].toLowerCase();
+      if(key === 'home' || key === 'top'){
+        window.scrollTo({top:0, behavior:'smooth'});
+        printLine('<span style="color:var(--green)">→ scrolling to top</span>');
+        setTermState('normal');
+        return;
+      }
+      const sectionId = SECTIONS[key];
+      if(sectionId){
+        document.getElementById(sectionId)?.scrollIntoView({behavior:'smooth'});
+        printLine(`<span style="color:var(--green)">→ jumping to #${sectionId}</span>`);
+        setTermState('minimized');
+      } else {
+        printLine(`<span style="color:var(--amber)">no such section: ${escHtml(key)} — try --help</span>`);
+      }
+      return;
+    }
+    if(head === 'open' && parts[1]){
+      const key = parts[1].toLowerCase();
+      if(key === 'cv'){
+        const cvBtn = document.getElementById('cvBtn');
+        if(cvBtn && cvBtn.style.display !== 'none' && cvBtn.getAttribute('href') !== '#'){
+          window.open(cvBtn.href, '_blank');
+          printLine('<span style="color:var(--green)">→ opening CV</span>');
+        } else {
+          printLine('<span style="color:var(--amber)">no CV uploaded yet</span>');
+        }
+        return;
+      }
+      const links = {
+        github: 'https://github.com/Talhakazmii',
+        linkedin: 'https://www.linkedin.com/in/syed-talha-ahmed-kazmi-054184284/'
+      };
+      if(links[key]){
+        window.open(links[key], '_blank');
+        printLine(`<span style="color:var(--green)">→ opening ${key}</span>`);
+      } else {
+        printLine(`<span style="color:var(--amber)">unknown target: ${escHtml(key)} — try --help</span>`);
+      }
+      return;
+    }
+    printLine(`<span style="color:var(--amber)">command not found: ${escHtml(cmd)} — try --help</span>`);
+  }
+
+  input.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      const val = input.value;
+      input.value = '';
+      if(loginFlow){
+        handleLoginStep(val);
+      } else {
+        runCommand(val);
+      }
+    }
+  });
+})();
 </script>
 
 <!-- Firebase config: fill in your project's keys in firebase-config.js -->
@@ -914,6 +1350,74 @@ drawNetwork();
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+  let fbApp = null;
+  function getFbApp(){
+    if(!fbApp) fbApp = initializeApp(window.FIREBASE_CONFIG);
+    return fbApp;
+  }
+
+  /* used by the hero terminal's `login` command */
+  window.terminalLogin = async function(email, password){
+    if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
+      return { ok:false, message:'Firebase is not configured yet' };
+    }
+    try{
+      const auth = getAuth(getFbApp());
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      return { ok:true, email: cred.user.email };
+    }catch(err){
+      return { ok:false, message:'invalid username or password' };
+    }
+  };
+
+  /* used by the hero terminal's `logout` command */
+  window.terminalLogout = async function(){
+    if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
+      return { ok:false, message:'Firebase is not configured yet' };
+    }
+    try{
+      const auth = getAuth(getFbApp());
+      if(!auth.currentUser) return { ok:false, message:'not logged in' };
+      const email = auth.currentUser.email;
+      await signOut(auth);
+      return { ok:true, email };
+    }catch(err){
+      return { ok:false, message:'could not log out' };
+    }
+  };
+
+  /* used by the terminal to check current auth state synchronously-ish */
+  window.terminalCurrentUser = function(){
+    if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') return null;
+    try{
+      const auth = getAuth(getFbApp());
+      return auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : null;
+    }catch(e){ return null; }
+  };
+
+  /* swap the navbar's "Sign In" button for the logged-in user's name once authenticated */
+  (function watchAuthState(){
+    if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') return;
+    const btn = document.getElementById('navSignIn');
+    if(!btn) return;
+    try{
+      const auth = getAuth(getFbApp());
+      onAuthStateChanged(auth, (user) => {
+        if(user){
+          const name = user.displayName || (user.email ? user.email.split('@')[0] : 'admin');
+          btn.textContent = name;
+          btn.title = user.email || '';
+          btn.classList.add('signed-in');
+        } else {
+          btn.textContent = 'Sign In';
+          btn.title = '';
+          btn.classList.remove('signed-in');
+        }
+      });
+    }catch(e){ /* auth not reachable — leave the default Sign In button as-is */ }
+  })();
 
   function escapeHtml(str){
     return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -938,7 +1442,7 @@ drawNetwork();
 
     if(configured){
       try{
-        const app = initializeApp(window.FIREBASE_CONFIG);
+        const app = getFbApp();
         const db = getFirestore(app);
         const snap = await getDoc(doc(db, 'portfolio', 'content'));
         if(snap.exists()) data = snap.data();

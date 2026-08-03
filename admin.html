@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Portfolio CMS</title>
+<script>
+  // Apply last-known site theme immediately (before paint) so the admin UI matches
+  // whatever theme is currently live on the public site — avoids a flash on load.
+  (function(){
+    try{
+      var t = localStorage.getItem('siteTheme');
+      if(t && t !== 'dark-green') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -12,6 +22,24 @@
     --amber:#ffb454; --red:#ff6b6b;
     --text:#b9c9c0; --text-dim:#5c6d64; --white:#eefff5;
   }
+  /* Light base neutrals — applies to all light-* presets, accent overridden individually below */
+  :root[data-theme^="light"]{
+    --bg:#f4f7f5; --panel:#ffffff; --border:#dde6e0; --border-hi:#bcd0c4;
+    --green:#0c8a4b; --green-soft:#0a6b3a; --green-dim:#128a52;
+    --text:#3a4a42; --text-dim:#7c8b83; --white:#0d1912;
+  }
+  /* ---- Dark accent variants ---- */
+  :root[data-theme="dark-cyan"]{ --green:#4dd8ff; --green-soft:#a3ecff; --green-dim:#1a7fa3; }
+  :root[data-theme="dark-amber"]{ --green:#ffb454; --green-soft:#ffd9a0; --green-dim:#b3762a; }
+  :root[data-theme="dark-purple"]{ --green:#b98bff; --green-soft:#ddc7ff; --green-dim:#6d3fc4; }
+  :root[data-theme="dark-red"]{ --green:#ff5c7a; --green-soft:#ffb0c0; --green-dim:#b3264a; }
+  /* ---- Light accent variants ---- */
+  :root[data-theme="light-cyan"]{ --green:#0e7fa8; --green-soft:#0a5f80; --green-dim:#10829e; }
+  :root[data-theme="light-amber"]{ --green:#b4740a; --green-soft:#8a5806; --green-dim:#a5690a; }
+  :root[data-theme="light-purple"]{ --green:#7a4fd1; --green-soft:#5c3aa3; --green-dim:#7248c2; }
+  :root[data-theme="light-red"]{ --green:#c23856; --green-soft:#8f2740; --green-dim:#b83350; }
+  :root{ transition:background-color .3s ease; }
+  body{ transition:background .3s ease, color .3s ease; }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;line-height:1.6;min-height:100vh;}
   h1{font-family:'Space Grotesk',sans-serif;color:var(--white);font-size:24px;margin-bottom:6px;}
@@ -592,6 +620,13 @@ function renderTheme(){
   }
   document.getElementById('darkSwatches').innerHTML = THEME_PRESETS.filter(p => p.mode === 'dark').map(swatchHtml).join('');
   document.getElementById('lightSwatches').innerHTML = THEME_PRESETS.filter(p => p.mode === 'light').map(swatchHtml).join('');
+  // keep the admin UI itself in the same theme as the site it's editing
+  if(currentId === 'dark-green'){
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', currentId);
+  }
+  try{ localStorage.setItem('siteTheme', currentId); }catch(e){}
 }
 document.addEventListener('click', (e) => {
   const swatch = e.target.closest && e.target.closest('.theme-swatch');
