@@ -82,10 +82,17 @@
     animation:spin .6s linear infinite;
   }
   @keyframes spin{to{transform:rotate(360deg);}}
-  #loginBtn{width:100%;margin-top:20px;}
+  #loginBtn, #forgotBtn{width:100%;margin-top:20px;}
   #loginError{color:var(--red);font-size:12.5px;margin-top:10px;min-height:1em;}
   #loginHome{display:block;text-align:center;margin-top:16px;font-size:12px;color:var(--text-dim);}
   #loginHome a{color:var(--green-dim);}
+  #forgotRow{text-align:center;margin-top:10px;}
+  #forgotRow a, #backToLogin{color:var(--green-dim);font-size:12px;}
+  #forgotRow a:hover, #backToLogin:hover{color:var(--green);}
+  .forgot-copy{color:var(--text-dim);font-size:12.5px;line-height:1.6;margin-top:-4px;}
+  #forgotStatus{font-size:12.5px;margin-top:10px;min-height:1em;color:var(--green-dim);}
+  #forgotStatus.err{color:var(--red);}
+  #forgotBack{display:block;text-align:center;margin-top:16px;font-size:12px;}
 
   .status{font-size:12.5px;color:var(--green-dim);min-height:1.2em;}
   .status.err{color:var(--red);}
@@ -292,14 +299,30 @@
 </script>
 
 <div id="loginBox">
-  <h2>Sign in — Portfolio CMS</h2>
-  <label>Email</label>
-  <input type="email" id="email" placeholder="you@example.com" autocomplete="username">
-  <label>Password</label>
-  <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
-  <button id="loginBtn" class="primary">Log In</button>
-  <div id="loginError"></div>
-  <div id="loginHome">← <a href="index.html">Back to site</a></div>
+  <div id="loginPanel">
+    <h2>Sign in — Portfolio CMS</h2>
+    <label>Email</label>
+    <input type="email" id="email" placeholder="you@example.com" autocomplete="username">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+    <button id="loginBtn" class="primary">Log In</button>
+    <div id="loginError"></div>
+    <div id="forgotRow"><a href="#" id="forgotLink">Forgot password?</a></div>
+    <div id="loginHome">← <a href="index.html">Back to site</a></div>
+  </div>
+
+  <div id="forgotPanel" style="display:none;">
+    <h2>Reset your password</h2>
+    <p class="forgot-copy">
+      For security, we never store or send your actual password — not even to you.
+      Enter your email and we'll send a secure link from Firebase that lets you set a new one.
+    </p>
+    <label>Email</label>
+    <input type="email" id="forgotEmail" placeholder="you@example.com" autocomplete="username">
+    <button id="forgotBtn" class="primary">Send Reset Link</button>
+    <div id="forgotStatus"></div>
+    <div id="forgotBack"><a href="#" id="backToLogin">← Back to login</a></div>
+  </div>
 </div>
 
 <div id="app" style="display:none;">
@@ -504,7 +527,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
-  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, collection, getDocs
@@ -1093,6 +1116,58 @@ async function doLogin(){
   }
 }
 document.getElementById('loginBtn').onclick = doLogin;
+
+/* ---------- forgot password ----------
+   We never store or transmit the actual password — Firebase only lets us send a
+   secure, expiring reset link to the account's email. The link itself opens a
+   Firebase-hosted reset page (the actual email body/design is controlled from
+   Firebase Console → Authentication → Templates, not from this code). */
+function showForgotPanel(){
+  document.getElementById('loginPanel').style.display = 'none';
+  document.getElementById('forgotPanel').style.display = 'block';
+  document.getElementById('forgotStatus').textContent = '';
+  document.getElementById('forgotStatus').className = '';
+  const prefill = document.getElementById('email').value.trim();
+  if(prefill) document.getElementById('forgotEmail').value = prefill;
+  document.getElementById('forgotEmail').focus();
+}
+function showLoginPanel(){
+  document.getElementById('forgotPanel').style.display = 'none';
+  document.getElementById('loginPanel').style.display = 'block';
+}
+document.getElementById('forgotLink').addEventListener('click', (e) => { e.preventDefault(); showForgotPanel(); });
+document.getElementById('backToLogin').addEventListener('click', (e) => { e.preventDefault(); showLoginPanel(); });
+
+async function doForgotPassword(){
+  const email = document.getElementById('forgotEmail').value.trim();
+  const statusEl = document.getElementById('forgotStatus');
+  const btn = document.getElementById('forgotBtn');
+  statusEl.className = '';
+  if(!email){
+    statusEl.textContent = 'Enter your email first.';
+    statusEl.className = 'err';
+    return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn-spinner"></span>Sending...';
+  try{
+    await sendPasswordResetEmail(auth, email);
+    statusEl.textContent = `✓ If ${email} has an account here, a reset link is on its way — check your inbox (and spam folder).`;
+  }catch(e){
+    // Firebase intentionally doesn't reveal whether the email exists, for security —
+    // this only fires for things like a malformed address.
+    statusEl.textContent = e.message.replace('Firebase: ', '');
+    statusEl.className = 'err';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send Reset Link';
+  }
+}
+document.getElementById('forgotBtn').onclick = doForgotPassword;
+document.getElementById('forgotEmail').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ e.preventDefault(); doForgotPassword(); }
+});
+
 ['email','password'].forEach(id => {
   document.getElementById(id).addEventListener('keydown', (e) => {
     if(e.key === 'Enter'){ e.preventDefault(); doLogin(); }

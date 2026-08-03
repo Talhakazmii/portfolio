@@ -19,6 +19,10 @@ Your site now has an admin page (`admin.html`) where you can log in and edit you
 2. Under **Sign-in method**, enable **Email/Password**.
 3. Go to the **Users** tab → **Add user** → enter your email (`talhakazmi301@gmail.com`) and a password you'll use to log into `admin.html`.
 
+**About "Forgot password":** `admin.html` now has a Forgot Password link. For security, Firebase never lets your actual password be read or emailed back to you (it's not stored anywhere in plain text, by design) — clicking it sends a secure, expiring reset link instead, which is the standard/correct approach.
+
+That reset email's design (subject line, sender name, colors, logo) is generated and sent entirely by Firebase's own infrastructure, not by this site's code — there's no way to inject custom HTML into it from client-side JavaScript. You can restyle it somewhat yourself: **Authentication → Templates → Password reset** in the Firebase console lets you change the sender name, subject, and add your own logo/customize a couple of colors. A fully custom dark-themed HTML email would need a paid Blaze plan plus a custom email action handler (or a separate transactional email service like SendGrid triggered by a Cloud Function) — real backend infrastructure, which is outside what a static GitHub Pages site can do on its own.
+
 ## 4. Enable Firestore
 
 1. Go to **Build → Firestore Database → Create database**.
