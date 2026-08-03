@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+
+# Update this to your final domain once your custom (.is-a.dev) domain is live,
+# or to your GitHub Pages URL (e.g. https://talhakazmii.github.io/portfolio/sitemap.xml)
+# if you're not using a custom domain.
+Sitemap: https://your-domain-here/sitemap.xml

@@ -56,6 +56,13 @@ File uploads (profile photo, certification files) go through Cloudinary instead 
 
 Because the upload preset is unsigned, anyone who inspects your site's JS could technically upload files to your Cloudinary account too — that's expected and normal for this kind of setup (Cloudinary's free tier is generous, and you can always regenerate/delete the preset if it's ever abused). Firestore itself still stays locked down to only your login.
 
+**Recommended: lock down the preset a bit further.** While you're on the upload preset's settings page (step 3 above), it's worth setting a couple of limits so a stranger can't spam-upload huge or unexpected files to your account:
+   - **Allowed formats**: restrict to `jpg,jpeg,png,webp,pdf` (matches what the site actually needs — photos, certification images, and CVs).
+   - **Max file size**: set something reasonable like `10 MB`.
+   - **Max image width/height**: optional, e.g. `3000` px, to reject absurdly large images.
+
+These are all under the same preset's **Upload Manipulations / Restrictions** section. None of this requires a code change — it's enforced by Cloudinary before the file ever reaches your account.
+
 ## 6. Fill in `firebase-config.js`
 
 Open `firebase-config.js` and paste in the config values from step 2. Save the file.
@@ -70,7 +77,17 @@ Open `firebase-config.js` and paste in the config values from step 2. Save the f
 
 ## 8. Deploy to GitHub Pages
 
-Push `index.html`, `admin.html`, `firebase-config.js`, and `cloudinary-config.js` together to your repo, then enable Pages (Settings → Pages → source: main branch). Your API key being visible in the JS is normal and expected for Firebase web apps — real security comes from the Firestore rules above, not from hiding the key.
+Push all of these together to your repo, then enable Pages (Settings → Pages → source: main branch):
+
+- `index.html`, `admin.html`, `404.html`
+- `firebase-config.js`, `cloudinary-config.js`
+- `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `icon-512.png`
+- `og-image.png` (the social share preview image)
+- `robots.txt`, `sitemap.xml` — before pushing, replace `https://your-domain-here/` in both files with your actual live URL (your `.is-a.dev` subdomain once set up, or your `https://<username>.github.io/portfolio/` URL if not)
+
+Your API key being visible in the JS is normal and expected for Firebase web apps — real security comes from the Firestore rules above, not from hiding the key.
+
+**Note on `404.html`:** GitHub Pages automatically serves this file for any broken/missing link. Its "back home" buttons use root-absolute links (`/`), which are correct once your custom domain is live. If you're still on the `.../portfolio/` GitHub Pages URL, open `404.html` and swap those two links for `index.html` / `index.html#contact` instead (there's a comment right above them).
 
 ## Notes
 

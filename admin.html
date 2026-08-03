@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>Admin — Portfolio CMS</title>
 <script>
   // Apply last-known site theme immediately (before paint) so the admin UI matches
@@ -14,6 +15,9 @@
     }catch(e){}
   })();
 </script>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -25,8 +29,8 @@
   /* Light base neutrals — applies to all light-* presets, accent overridden individually below */
   :root[data-theme^="light"]{
     --bg:#f4f7f5; --panel:#ffffff; --border:#dde6e0; --border-hi:#bcd0c4;
-    --green:#0c8a4b; --green-soft:#0a6b3a; --green-dim:#128a52;
-    --text:#3a4a42; --text-dim:#7c8b83; --white:#0d1912;
+    --green:#0b8146; --green-soft:#0a6b3a; --green-dim:#11814d;
+    --text:#3a4a42; --text-dim:#67736d; --white:#0d1912;
   }
   /* ---- Dark accent variants ---- */
   :root[data-theme="dark-cyan"]{ --green:#4dd8ff; --green-soft:#a3ecff; --green-dim:#1a7fa3; }
@@ -34,8 +38,8 @@
   :root[data-theme="dark-purple"]{ --green:#b98bff; --green-soft:#ddc7ff; --green-dim:#6d3fc4; }
   :root[data-theme="dark-red"]{ --green:#ff5c7a; --green-soft:#ffb0c0; --green-dim:#b3264a; }
   /* ---- Light accent variants ---- */
-  :root[data-theme="light-cyan"]{ --green:#0e7fa8; --green-soft:#0a5f80; --green-dim:#10829e; }
-  :root[data-theme="light-amber"]{ --green:#b4740a; --green-soft:#8a5806; --green-dim:#a5690a; }
+  :root[data-theme="light-cyan"]{ --green:#0d79a0; --green-soft:#0a5f80; --green-dim:#0f7a95; }
+  :root[data-theme="light-amber"]{ --green:#9c6409; --green-soft:#8a5806; --green-dim:#9d640a; }
   :root[data-theme="light-purple"]{ --green:#7a4fd1; --green-soft:#5c3aa3; --green-dim:#7248c2; }
   :root[data-theme="light-red"]{ --green:#c23856; --green-soft:#8f2740; --green-dim:#b83350; }
   :root{ transition:background-color .3s ease; }
@@ -85,6 +89,34 @@
 
   .status{font-size:12.5px;color:var(--green-dim);min-height:1.2em;}
   .status.err{color:var(--red);}
+
+  /* Loader — shown until we know the auth state, so logged-in users never see
+     the login form flash before landing on the dashboard */
+  #adminLoader{
+    position:fixed;inset:0;z-index:500;
+    background:var(--bg);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+    transition:opacity .4s ease, visibility .4s ease;
+  }
+  #adminLoader.loader-hidden{opacity:0;visibility:hidden;pointer-events:none;}
+  .loader-dots{display:flex;gap:11px;}
+  .loader-dots span{
+    width:14px;height:14px;border-radius:3px;background:var(--green);
+    animation:loaderPulse 1.1s ease-in-out infinite;
+  }
+  .loader-dots span:nth-child(1){animation-delay:0s;}
+  .loader-dots span:nth-child(2){animation-delay:.14s;}
+  .loader-dots span:nth-child(3){animation-delay:.28s;}
+  .loader-dots span:nth-child(4){animation-delay:.42s;}
+  @keyframes loaderPulse{
+    0%, 80%, 100%{ transform:scale(0.55); opacity:0.55; }
+    40%{ transform:scale(1.35); opacity:1; }
+  }
+  .loader-text{
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:3px;
+    color:var(--text-dim);text-transform:uppercase;
+  }
+  #loginBox{display:none;}
 
   /* App shell */
   #app{display:none;min-height:100vh;}
@@ -193,6 +225,29 @@
 </head>
 <body>
 
+<div id="adminLoader">
+  <div class="loader-dots"><span></span><span></span><span></span><span></span></div>
+  <div class="loader-text">Loading...</div>
+</div>
+<script>
+  window.hideAdminLoader = function(){
+    var loader = document.getElementById('adminLoader');
+    if(!loader || loader.dataset.hidden) return;
+    loader.dataset.hidden = '1';
+    loader.classList.add('loader-hidden');
+    setTimeout(function(){ loader.style.display = 'none'; }, 450);
+  };
+  // safety net so the loader can never get stuck if auth takes unusually long
+  setTimeout(function(){
+    if(window.hideAdminLoader) window.hideAdminLoader();
+    var lb = document.getElementById('loginBox');
+    var app = document.getElementById('app');
+    if(lb && app && lb.style.display === '' && app.style.display !== 'flex'){
+      lb.style.display = 'block';
+    }
+  }, 6000);
+</script>
+
 <div id="loginBox">
   <h2>Sign in — Portfolio CMS</h2>
   <label>Email</label>
@@ -232,7 +287,9 @@
         <div class="toolbar">
           <button class="primary" data-goto="config">Edit Site Configuration →</button>
           <a href="index.html" target="_blank"><button>View Live Site ↗</button></a>
+          <button id="exportBackupBtn">⬇ Download Backup (JSON)</button>
         </div>
+        <div class="hint" style="margin-top:10px;">Saves everything currently on your live site — bio, skills, projects, experience, certifications — as one JSON file, in case you ever need to restore it.</div>
       </div>
     </div>
 
@@ -378,6 +435,8 @@ import {
 if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
   document.getElementById('loginBox').innerHTML =
     '<h2>Not configured yet</h2><p style="font-size:13px;color:var(--text-dim);">Fill in firebase-config.js with your Firebase project keys first (see SETUP.md), then reload this page.</p>';
+  document.getElementById('loginBox').style.display = 'block';
+  if(window.hideAdminLoader) window.hideAdminLoader();
 } else {
 
 const app = initializeApp(window.FIREBASE_CONFIG);
@@ -603,9 +662,9 @@ const THEME_PRESETS = [
   {id:'dark-amber',   mode:'dark',  label:'Retro Amber', bg:'#07090a', accent:'#ffb454'},
   {id:'dark-purple',  mode:'dark',  label:'Cyberpunk',   bg:'#07090a', accent:'#b98bff'},
   {id:'dark-red',     mode:'dark',  label:'Crimson',     bg:'#07090a', accent:'#ff5c7a'},
-  {id:'light-green',  mode:'light', label:'Mint',        bg:'#f4f7f5', accent:'#0c8a4b'},
-  {id:'light-cyan',   mode:'light', label:'Sky',         bg:'#f4f7f5', accent:'#0e7fa8'},
-  {id:'light-amber',  mode:'light', label:'Sand',        bg:'#f4f7f5', accent:'#b4740a'},
+  {id:'light-green',  mode:'light', label:'Mint',        bg:'#f4f7f5', accent:'#0b8146'},
+  {id:'light-cyan',   mode:'light', label:'Sky',         bg:'#f4f7f5', accent:'#0d79a0'},
+  {id:'light-amber',  mode:'light', label:'Sand',        bg:'#f4f7f5', accent:'#9c6409'},
   {id:'light-purple', mode:'light', label:'Lavender',    bg:'#f4f7f5', accent:'#7a4fd1'},
   {id:'light-red',    mode:'light', label:'Rose',        bg:'#f4f7f5', accent:'#c23856'}
 ];
@@ -813,6 +872,20 @@ document.getElementById('reloadLive').onclick = async () => {
   setSaveStatus('Reloaded from live site.', false);
 };
 
+document.getElementById('exportBackupBtn').onclick = () => {
+  const json = JSON.stringify(state, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().slice(0, 10);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `portfolio-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
+
 /* ---------- auth ---------- */
 async function doLogin(){
   const email = document.getElementById('email').value.trim();
@@ -846,9 +919,12 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('whoami').textContent = 'Signed in as ' + user.email;
     switchView('dashboard');
     await loadFromFirestore();
+    // reveal only once the dashboard actually has data — no flash of an empty shell
+    if(window.hideAdminLoader) window.hideAdminLoader();
   } else {
-    document.getElementById('loginBox').style.display = 'block';
     document.getElementById('app').style.display = 'none';
+    document.getElementById('loginBox').style.display = 'block';
+    if(window.hideAdminLoader) window.hideAdminLoader();
   }
 });
 

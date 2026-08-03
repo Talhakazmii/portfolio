@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Not Found | Syed Talha Ahmed Kazmi</title>
+<meta name="robots" content="noindex">
+<script>
+  (function(){
+    try{
+      var t = localStorage.getItem('siteTheme');
+      if(t && t !== 'dark-green'){
+        document.documentElement.setAttribute('data-theme', t);
+      } else if(!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches){
+        document.documentElement.setAttribute('data-theme', 'light-green');
+      }
+    }catch(e){}
+  })();
+</script>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07090a; --panel:rgba(16,22,19,0.6); --panel-solid:#0d1310;
+    --border:#1c2a22; --border-hi:#2c4535;
+    --green:#3dffa0; --green-soft:#9dffce; --green-dim:#1f8c55;
+    --text:#b9c9c0; --text-dim:#5c6d64; --white:#eefff5;
+    --net-dot:61,255,160;
+  }
+  :root[data-theme^="light"]{
+    --bg:#f4f7f5; --panel:rgba(255,255,255,0.7); --panel-solid:#ffffff;
+    --border:#dde6e0; --border-hi:#bcd0c4;
+    --green:#0b8146; --green-soft:#0a6b3a; --green-dim:#11814d;
+    --text:#3a4a42; --text-dim:#67736d; --white:#0d1912; --net-dot:12,138,75;
+  }
+  :root[data-theme="dark-cyan"]{ --green:#4dd8ff; --green-soft:#a3ecff; --green-dim:#1a7fa3; --net-dot:77,216,255; }
+  :root[data-theme="dark-amber"]{ --green:#ffb454; --green-soft:#ffd9a0; --green-dim:#b3762a; --net-dot:255,180,84; }
+  :root[data-theme="dark-purple"]{ --green:#b98bff; --green-soft:#ddc7ff; --green-dim:#6d3fc4; --net-dot:185,139,255; }
+  :root[data-theme="dark-red"]{ --green:#ff5c7a; --green-soft:#ffb0c0; --green-dim:#b3264a; --net-dot:255,92,122; }
+  :root[data-theme="light-cyan"]{ --green:#0d79a0; --green-soft:#0a5f80; --green-dim:#0f7a95; --net-dot:14,127,168; }
+  :root[data-theme="light-amber"]{ --green:#9c6409; --green-soft:#8a5806; --green-dim:#9d640a; --net-dot:180,116,10; }
+  :root[data-theme="light-purple"]{ --green:#7a4fd1; --green-soft:#5c3aa3; --green-dim:#7248c2; --net-dot:122,79,209; }
+  :root[data-theme="light-red"]{ --green:#c23856; --green-soft:#8f2740; --green-dim:#b83350; --net-dot:194,56,86; }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:24px;transition:background .3s ease,color .3s ease;
+  }
+  .box{
+    max-width:560px;width:100%;
+    border:1px solid var(--border-hi);border-radius:12px;background:var(--panel-solid);
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.5);overflow:hidden;
+  }
+  .bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#0c1310;border-bottom:1px solid var(--border);}
+  :root[data-theme^="light"] .bar{background:#eef3f0;}
+  .dot{width:11px;height:11px;border-radius:50%;}
+  .dot.red{background:#ff5f56;} .dot.yellow{background:#ffbd2e;} .dot.green{background:#27c93f;}
+  .bar-title{margin-left:8px;color:var(--text-dim);font-size:11.5px;}
+  .body{padding:32px 28px 34px;}
+  .prompt{color:var(--green-dim);}
+  .prompt .path{color:#5ee7ff;}
+  .line{margin-bottom:6px;font-size:13.5px;color:var(--text-dim);}
+  .code{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:64px;
+    color:var(--white);letter-spacing:1px;margin:14px 0 6px;
+  }
+  .code span{color:var(--green);}
+  .msg{color:var(--text);font-size:14px;margin-bottom:24px;line-height:1.6;}
+  .msg b{color:var(--green-soft);}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:7px;
+    font-size:13px;text-decoration:none;border:1px solid var(--border-hi);color:var(--text);
+    transition:all .2s;
+  }
+  .btn:hover{border-color:var(--green);color:var(--white);transform:translateY(-2px);}
+  .btn.solid{background:var(--green);color:#04160c;font-weight:700;border-color:var(--green);}
+  .btn.solid:hover{background:var(--green-soft);}
+  .caret{display:inline-block;width:8px;height:16px;background:var(--green);vertical-align:-3px;animation:blink 1s step-end infinite;}
+  @keyframes blink{50%{opacity:0;}}
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="bar">
+      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+      <span class="bar-title">talha@portfolio — zsh — 80×20</span>
+    </div>
+    <div class="body">
+      <div class="line prompt">talha@dev <span style="color:var(--text-dim)">~</span> % cd <span class="path">/this-page</span></div>
+      <div class="code">4<span>0</span>4</div>
+      <div class="msg">
+        <b>zsh: no such file or directory.</b><br>
+        The page you're looking for doesn't exist, moved, or the link's just wrong. Let's get you back to somewhere real.
+      </div>
+      <!-- these are root-absolute, correct once your custom (.is-a.dev) domain is live.
+           If you're still on the GitHub Pages project URL (…/portfolio/), swap these for
+           href="index.html" and href="index.html#contact" instead. -->
+      <div class="actions">
+        <a href="/" class="btn solid">→ cd ~/home</a>
+        <a href="/#contact" class="btn">✉ Get in touch</a>
+      </div>
+      <div class="line" style="margin-top:22px;">talha@dev <span style="color:var(--text-dim)">~</span> % <span class="caret"></span></div>
+    </div>
+  </div>
+  <script>
+    // fill in the path the visitor actually tried to hit, for a bit of realism
+    try{
+      var p = window.location.pathname || '/unknown';
+      document.querySelector('.path').textContent = p;
+    }catch(e){}
+  </script>
+</body>
+</html>
