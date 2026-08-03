@@ -43,6 +43,13 @@
   button.danger{border-color:#4a2323;color:var(--red);}
   button.danger:hover{border-color:var(--red);background:rgba(255,107,107,0.08);}
   button.small{padding:6px 12px;font-size:12px;}
+  button:disabled{opacity:0.6;cursor:not-allowed;}
+  .btn-spinner{
+    display:inline-block;width:13px;height:13px;margin-right:8px;vertical-align:-2px;
+    border:2px solid rgba(4,22,12,0.3);border-top-color:currentColor;border-radius:50%;
+    animation:spin .6s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
   #loginBtn{width:100%;margin-top:20px;}
   #loginError{color:var(--red);font-size:12.5px;margin-top:10px;min-height:1em;}
   #loginHome{display:block;text-align:center;margin-top:16px;font-size:12px;color:var(--text-dim);}
@@ -117,6 +124,27 @@
     padding:16px 0;display:flex;justify-content:space-between;align-items:center;gap:16px;
     margin-top:10px;
   }
+  .upload-progress{
+    width:100%;height:6px;border-radius:4px;background:var(--border);overflow:hidden;
+    margin-top:8px;display:none;
+  }
+  .upload-progress.active{display:block;}
+  .upload-progress i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--green-dim),var(--green));transition:width .15s ease;}
+  .theme-swatches{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+  .theme-swatch{
+    width:46px;height:46px;border-radius:10px;cursor:pointer;position:relative;
+    border:2px solid var(--border);display:flex;align-items:center;justify-content:center;
+    transition:transform .15s ease, border-color .15s ease;
+  }
+  .theme-swatch:hover{transform:translateY(-2px);}
+  .theme-swatch.selected{border-color:#fff;}
+  .theme-swatch .check{color:#fff;font-size:16px;text-shadow:0 1px 3px rgba(0,0,0,0.7);display:none;}
+  .theme-swatch.selected .check{display:block;}
+  .theme-swatch .lbl{
+    position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);
+    font-size:10px;color:var(--text-dim);white-space:nowrap;opacity:0;transition:opacity .15s;
+  }
+  .theme-swatch:hover .lbl{opacity:1;}
 
   @media(max-width:800px){
     #app{flex-direction:column;}
@@ -185,6 +213,20 @@
       <h1>Site Configuration</h1>
       <div class="sub">Edit your bio, skills, projects, and availability — changes go live on <a href="index.html" style="color:var(--green)">your site</a> as soon as you save.</div>
 
+      <!-- THEME -->
+      <div class="card">
+        <h2>Theme</h2>
+        <div class="hint">Pick an accent color for dark mode or light mode. Applies to all visitors after you save.</div>
+        <div style="margin-top:12px;">
+          <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:8px;letter-spacing:0.4px;">🌙 DARK</div>
+          <div class="theme-swatches" id="darkSwatches"></div>
+        </div>
+        <div style="margin-top:18px;">
+          <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:8px;letter-spacing:0.4px;">☀️ LIGHT</div>
+          <div class="theme-swatches" id="lightSwatches"></div>
+        </div>
+      </div>
+
       <!-- AVAILABILITY -->
       <div class="card">
         <h2>Availability</h2>
@@ -201,6 +243,33 @@
           <label>Current company</label>
           <input type="text" id="companyInput" placeholder="e.g. Acme Corp">
         </div>
+      </div>
+
+      <!-- PROFILE PHOTO -->
+      <div class="card">
+        <h2>Profile Photo</h2>
+        <div class="hint">Shown in the About Me section. If none is uploaded, your site shows initials as a placeholder.</div>
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+          <div id="photoPreview" style="width:84px;height:84px;border-radius:10px;border:1px solid var(--border-hi);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#0b100e;color:var(--text-dim);font-size:11px;text-align:center;">No photo</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <input type="file" accept="image/*" id="photoFile" style="width:auto;">
+            <button class="small" id="photoUploadBtn">Upload</button>
+          </div>
+        </div>
+        <div class="upload-progress" id="photoProgress"><i></i></div>
+        <div class="status" id="photoStatus" style="margin-top:8px;"></div>
+      </div>
+
+      <!-- RESUME / CV -->
+      <div class="card">
+        <h2>Resume / CV</h2>
+        <div class="hint">Adds a "Download CV" button to your site. Hidden automatically if nothing is uploaded.</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+          <input type="file" accept="application/pdf" id="cvFile" style="width:auto;">
+          <button class="small" id="cvUploadBtn">Upload</button>
+        </div>
+        <div class="upload-progress" id="cvProgress"><i></i></div>
+        <div class="status" id="cvStatus" style="margin-top:8px;"></div>
       </div>
 
       <!-- EXPERIENCE -->
@@ -268,6 +337,7 @@
 </div>
 
 <script src="firebase-config.js"></script>
+<script src="cloudinary-config.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
@@ -276,9 +346,6 @@ import {
 import {
   getFirestore, doc, getDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-import {
-  getStorage, ref, uploadBytes, getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
 if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
   document.getElementById('loginBox').innerHTML =
@@ -288,11 +355,50 @@ if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
 const app = initializeApp(window.FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
+
+/* ---------- upload helper: Cloudinary unsigned upload, real progress via XHR, 30s timeout ---------- */
+function uploadToCloudinary(file, folder, onProgress){
+  return new Promise((resolve, reject) => {
+    if(!window.CLOUDINARY_CLOUD_NAME || window.CLOUDINARY_CLOUD_NAME === 'YOUR_CLOUD_NAME'){
+      reject(new Error('Cloudinary not configured yet — fill in cloudinary-config.js (see SETUP.md).'));
+      return;
+    }
+    const url = `https://api.cloudinary.com/v1_1/${window.CLOUDINARY_CLOUD_NAME}/auto/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', window.CLOUDINARY_UPLOAD_PRESET);
+    if(folder) formData.append('folder', folder);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.timeout = 30000;
+    xhr.upload.onprogress = (e) => {
+      if(e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      if(xhr.status >= 200 && xhr.status < 300){
+        try{
+          resolve(JSON.parse(xhr.responseText).secure_url);
+        }catch(e){ reject(new Error('Unexpected response from Cloudinary.')); }
+      } else {
+        try{
+          const err = JSON.parse(xhr.responseText);
+          reject(new Error(err.error?.message || ('Upload failed (status ' + xhr.status + ').')));
+        }catch(e){ reject(new Error('Upload failed (status ' + xhr.status + ').')); }
+      }
+    };
+    xhr.onerror = () => reject(new Error('Network error contacting Cloudinary — check your internet connection.'));
+    xhr.ontimeout = () => reject(new Error('Upload timed out after 30s — check your Cloudinary cloud name and upload preset (SETUP.md step 5).'));
+    xhr.send(formData);
+  });
+}
 const ADMIN_EMAIL = window.ADMIN_EMAIL || '';
 
 const DEFAULTS = {
+  theme: { id: "dark-green" },
   availability: { status: "yes", company: "" },
+  profilePhotoUrl: "",
+  cvUrl: "",
   certifications: [],
   experience: [
     {
@@ -368,7 +474,7 @@ const DEFAULTS = {
   ]
 };
 
-let state = { availability:{status:"yes",company:""}, experience:[], certifications:[], bio:[], skills:[], projects:[] };
+let state = { theme:{id:"dark-green"}, availability:{status:"yes",company:""}, profilePhotoUrl:"", cvUrl:"", experience:[], certifications:[], bio:[], skills:[], projects:[] };
 
 /* ---------- view switching ---------- */
 function switchView(name){
@@ -396,6 +502,103 @@ function renderDashboard(){
     <div class="dash-stat"><div class="num small">${availLabel}</div><div class="lbl">AVAILABILITY</div></div>
   `;
 }
+
+function renderPhoto(){
+  const el = document.getElementById('photoPreview');
+  el.innerHTML = state.profilePhotoUrl
+    ? `<img src="${escAttr(state.profilePhotoUrl)}" style="width:100%;height:100%;object-fit:cover;">`
+    : 'No photo';
+}
+document.getElementById('photoUploadBtn').addEventListener('click', async () => {
+  const fileInput = document.getElementById('photoFile');
+  const statusEl = document.getElementById('photoStatus');
+  const progressWrap = document.getElementById('photoProgress');
+  const progressBar = progressWrap.querySelector('i');
+  const file = fileInput.files?.[0];
+  if(!file){ statusEl.textContent = 'Choose an image first.'; statusEl.className = 'status err'; return; }
+  progressWrap.classList.add('active');
+  progressBar.style.width = '0%';
+  statusEl.textContent = 'Uploading... 0%';
+  statusEl.className = 'status';
+  try{
+    const url = await uploadToCloudinary(file, 'portfolio/profile', (pct) => {
+      progressBar.style.width = pct + '%';
+      statusEl.textContent = 'Uploading... ' + pct + '%';
+    });
+    state.profilePhotoUrl = url;
+    renderPhoto();
+    progressWrap.classList.remove('active');
+    statusEl.textContent = '✓ Photo uploaded. Click Save Changes to publish.';
+  }catch(err){
+    progressWrap.classList.remove('active');
+    statusEl.textContent = 'Upload failed: ' + err.message;
+    statusEl.className = 'status err';
+  }
+});
+
+function renderCV(){
+  const el = document.getElementById('cvStatus');
+  el.innerHTML = state.cvUrl
+    ? '✓ CV uploaded — <a href="'+escAttr(state.cvUrl)+'" target="_blank" style="color:var(--green);">preview</a>'
+    : 'No CV uploaded yet.';
+}
+document.getElementById('cvUploadBtn').addEventListener('click', async () => {
+  const fileInput = document.getElementById('cvFile');
+  const statusEl = document.getElementById('cvStatus');
+  const progressWrap = document.getElementById('cvProgress');
+  const progressBar = progressWrap.querySelector('i');
+  const file = fileInput.files?.[0];
+  if(!file){ statusEl.textContent = 'Choose a PDF first.'; statusEl.className = 'status err'; return; }
+  progressWrap.classList.add('active');
+  progressBar.style.width = '0%';
+  statusEl.textContent = 'Uploading... 0%';
+  statusEl.className = 'status';
+  try{
+    const url = await uploadToCloudinary(file, 'portfolio/cv', (pct) => {
+      progressBar.style.width = pct + '%';
+      statusEl.textContent = 'Uploading... ' + pct + '%';
+    });
+    state.cvUrl = url;
+    progressWrap.classList.remove('active');
+    renderCV();
+    statusEl.textContent = statusEl.textContent + ' — click Save Changes to publish.';
+  }catch(err){
+    progressWrap.classList.remove('active');
+    statusEl.textContent = 'Upload failed: ' + err.message + ' (if this says "not allowed" or "unsupported", enable PDF/raw uploads on your unsigned preset — Settings → Upload → edit preset → Allowed formats).';
+    statusEl.className = 'status err';
+  }
+});
+
+const THEME_PRESETS = [
+  {id:'dark-green',   mode:'dark',  label:'Matrix',      bg:'#07090a', accent:'#3dffa0'},
+  {id:'dark-cyan',    mode:'dark',  label:'Cyber Blue',  bg:'#07090a', accent:'#4dd8ff'},
+  {id:'dark-amber',   mode:'dark',  label:'Retro Amber', bg:'#07090a', accent:'#ffb454'},
+  {id:'dark-purple',  mode:'dark',  label:'Cyberpunk',   bg:'#07090a', accent:'#b98bff'},
+  {id:'dark-red',     mode:'dark',  label:'Crimson',     bg:'#07090a', accent:'#ff5c7a'},
+  {id:'light-green',  mode:'light', label:'Mint',        bg:'#f4f7f5', accent:'#0c8a4b'},
+  {id:'light-cyan',   mode:'light', label:'Sky',         bg:'#f4f7f5', accent:'#0e7fa8'},
+  {id:'light-amber',  mode:'light', label:'Sand',        bg:'#f4f7f5', accent:'#b4740a'},
+  {id:'light-purple', mode:'light', label:'Lavender',    bg:'#f4f7f5', accent:'#7a4fd1'},
+  {id:'light-red',    mode:'light', label:'Rose',        bg:'#f4f7f5', accent:'#c23856'}
+];
+
+function renderTheme(){
+  const currentId = (state.theme && state.theme.id) || 'dark-green';
+  function swatchHtml(p){
+    return `<div class="theme-swatch${p.id===currentId ? ' selected' : ''}" data-theme-id="${p.id}"
+      style="background:linear-gradient(135deg, ${p.bg} 50%, ${p.accent} 50%);">
+      <span class="check">✓</span><span class="lbl">${p.label}</span>
+    </div>`;
+  }
+  document.getElementById('darkSwatches').innerHTML = THEME_PRESETS.filter(p => p.mode === 'dark').map(swatchHtml).join('');
+  document.getElementById('lightSwatches').innerHTML = THEME_PRESETS.filter(p => p.mode === 'light').map(swatchHtml).join('');
+}
+document.addEventListener('click', (e) => {
+  const swatch = e.target.closest && e.target.closest('.theme-swatch');
+  if(!swatch) return;
+  state.theme = { id: swatch.dataset.themeId };
+  renderTheme();
+});
 
 function renderAvailability(){
   const a = state.availability || {status:"yes", company:""};
@@ -455,6 +658,7 @@ function renderCertifications(){
         <input type="file" accept="image/*,application/pdf" data-cert-file="${i}" style="width:auto;flex:1;min-width:180px;">
         <button class="small" data-cert-upload="${i}">Upload</button>
       </div>
+      <div class="upload-progress" data-cert-progress="${i}"><i></i></div>
       <div class="status" data-cert-status="${i}" style="margin-top:6px;">${c.fileUrl ? '✓ File uploaded — <a href="'+escAttr(c.fileUrl)+'" target="_blank" style="color:var(--green);">preview</a>' : 'No file uploaded yet.'}</div>
     </div>`).join('') || '<div class="hint">No certifications yet.</div>';
 }
@@ -471,19 +675,25 @@ document.addEventListener('click', async (e) => {
   const idx = Number(i);
   const fileInput = document.querySelector(`[data-cert-file="${idx}"]`);
   const statusEl = document.querySelector(`[data-cert-status="${idx}"]`);
+  const progressWrap = document.querySelector(`[data-cert-progress="${idx}"]`);
+  const progressBar = progressWrap.querySelector('i');
   const file = fileInput?.files?.[0];
   if(!file){ statusEl.textContent = 'Choose a file first.'; statusEl.className = 'status err'; return; }
+  progressWrap.classList.add('active');
+  progressBar.style.width = '0%';
+  statusEl.textContent = 'Uploading... 0%';
+  statusEl.className = 'status';
   try{
-    statusEl.textContent = 'Uploading...';
-    statusEl.className = 'status';
-    const path = `certifications/${Date.now()}-${file.name}`;
-    const fileRef = ref(storage, path);
-    await uploadBytes(fileRef, file);
-    const url = await getDownloadURL(fileRef);
+    const url = await uploadToCloudinary(file, 'portfolio/certifications', (pct) => {
+      progressBar.style.width = pct + '%';
+      statusEl.textContent = 'Uploading... ' + pct + '%';
+    });
     state.certifications[idx].fileUrl = url;
     state.certifications[idx].fileType = file.type.includes('pdf') ? 'pdf' : 'image';
+    progressWrap.classList.remove('active');
     statusEl.innerHTML = '✓ File uploaded — <a href="'+url+'" target="_blank" style="color:var(--green);">preview</a>';
   }catch(err){
+    progressWrap.classList.remove('active');
     statusEl.textContent = 'Upload failed: ' + err.message;
     statusEl.className = 'status err';
   }
@@ -529,7 +739,7 @@ function renderProjects(){
       <label>Stack (comma-separated)</label><input data-field="projects.stack" data-i="${i}" value="${escAttr((p.stack||[]).join(', '))}">
     </div>`).join('') || '<div class="hint">No projects yet.</div>';
 }
-function renderAll(){ renderDashboard(); renderAvailability(); renderExperience(); renderCertifications(); renderBio(); renderSkills(); renderProjects(); }
+function renderAll(){ renderDashboard(); renderTheme(); renderPhoto(); renderCV(); renderAvailability(); renderExperience(); renderCertifications(); renderBio(); renderSkills(); renderProjects(); }
 function escAttr(str){ return String(str ?? '').replace(/"/g,'&quot;'); }
 
 document.addEventListener('input', (e) => {
@@ -569,17 +779,29 @@ document.getElementById('reloadLive').onclick = async () => {
 };
 
 /* ---------- auth ---------- */
-document.getElementById('loginBtn').onclick = async () => {
+async function doLogin(){
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
   errEl.textContent = '';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn-spinner"></span>Signing in...';
   try{
     await signInWithEmailAndPassword(auth, email, password);
   }catch(e){
     errEl.textContent = e.message.replace('Firebase: ','');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Log In';
   }
-};
+}
+document.getElementById('loginBtn').onclick = doLogin;
+['email','password'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){ e.preventDefault(); doLogin(); }
+  });
+});
 document.getElementById('logoutBtn').onclick = (e) => { e.preventDefault(); signOut(auth); };
 
 onAuthStateChanged(auth, async (user) => {
@@ -599,7 +821,14 @@ async function loadFromFirestore(){
   try{
     const snap = await getDoc(doc(db, 'portfolio', 'content'));
     state = snap.exists() ? snap.data() : JSON.parse(JSON.stringify(DEFAULTS));
+    if(!state.theme || !state.theme.id){
+      // migrate old {mode:'light'|'dark'} schema if present
+      const legacyMode = state.theme && state.theme.mode;
+      state.theme = { id: legacyMode === 'light' ? 'light-green' : 'dark-green' };
+    }
     if(!state.availability) state.availability = {status:"yes", company:""};
+    if(typeof state.profilePhotoUrl !== 'string') state.profilePhotoUrl = '';
+    if(typeof state.cvUrl !== 'string') state.cvUrl = '';
     if(!Array.isArray(state.experience)) state.experience = [];
     if(!Array.isArray(state.certifications)) state.certifications = [];
     if(!Array.isArray(state.bio)) state.bio = [];

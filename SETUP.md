@@ -41,25 +41,20 @@ service cloud.firestore {
 
 This means: anyone can view your portfolio content, but only your logged-in account can edit it.
 
-## 5. Enable Storage (for certification uploads)
+## 5. Set up Cloudinary (for your profile photo and certification uploads)
 
-1. Go to **Build → Storage → Get started**.
-2. Choose **Start in production mode**, pick the same region as Firestore, click **Done**.
-3. Go to the **Rules** tab and replace the contents with:
+File uploads (profile photo, certification files) go through Cloudinary instead of Firebase Storage — Firebase changed Cloud Storage to require a paid Blaze plan (with a credit card on file) as of February 2026, while Cloudinary's free tier needs no card at all.
 
-```
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /certifications/{fileName} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.token.email == 'talhakazmi301@gmail.com';
-    }
-  }
-}
-```
+1. Sign up free at https://cloudinary.com — no credit card required.
+2. Your **Cloud Name** is shown right on the Cloudinary Dashboard homepage after signup.
+3. Create an **unsigned** upload preset (required so the browser can upload directly without a backend or secret key):
+   - Go to **Settings** (gear icon, top right) → **Upload** tab → **Upload presets** → **Add upload preset**.
+   - Set **Signing Mode** to **Unsigned**.
+   - (Optional) Under "Folder", you can leave it blank — the app already organizes uploads into `portfolio/profile` and `portfolio/certifications` folders automatically.
+   - Click **Save**, then copy the preset's name (shown in the preset list).
+4. Open `cloudinary-config.js` and fill in `CLOUDINARY_CLOUD_NAME` and `CLOUDINARY_UPLOAD_PRESET` with the values from steps 2 and 3.
 
-4. Click **Publish**. This lets anyone view uploaded certificates, but only your account can upload/replace them.
+Because the upload preset is unsigned, anyone who inspects your site's JS could technically upload files to your Cloudinary account too — that's expected and normal for this kind of setup (Cloudinary's free tier is generous, and you can always regenerate/delete the preset if it's ever abused). Firestore itself still stays locked down to only your login.
 
 ## 6. Fill in `firebase-config.js`
 
@@ -69,15 +64,16 @@ Open `firebase-config.js` and paste in the config values from step 2. Save the f
 
 1. Open `admin.html` in your browser, log in with the email/password from step 3.
 2. Click **Load starter content** to pre-fill the form with your current bio/skills/projects.
-3. Add an experience entry or certification (upload a file for the certification — click **Upload** after choosing the file).
+3. Upload a profile photo, and/or add an experience entry or certification (choose a file, then click **Upload** — you'll see a live progress bar).
 4. Click **Save Changes**.
 5. Open `index.html` — it should now show your updated content (refresh if it was already open).
 
 ## 8. Deploy to GitHub Pages
 
-Push `index.html`, `admin.html`, and `firebase-config.js` together to your repo, then enable Pages (Settings → Pages → source: main branch). Your API key being visible in the JS is normal and expected for Firebase web apps — real security comes from the Firestore rules above, not from hiding the key.
+Push `index.html`, `admin.html`, `firebase-config.js`, and `cloudinary-config.js` together to your repo, then enable Pages (Settings → Pages → source: main branch). Your API key being visible in the JS is normal and expected for Firebase web apps — real security comes from the Firestore rules above, not from hiding the key.
 
 ## Notes
 
-- Only the email set in step 3 can save changes — anyone else who finds `admin.html` will be able to see the login screen but can't write data (blocked by both auth and Firestore rules).
-- If you ever want to add a second admin, add another email check with `||` in the rules, and create another user in step 3.
+- Only the email set in step 3 can save changes to your content — anyone else who finds `admin.html` will be able to see the login screen but can't write data (blocked by both auth and Firestore rules).
+- If you ever want to add a second admin, add another email check with `||` in the Firestore rules, and create another user in step 3.
+- Uploaded files live in Cloudinary, not Firestore — Firestore only stores the resulting URLs.

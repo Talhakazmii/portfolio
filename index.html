@@ -4,10 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Syed Talha Ahmed Kazmi — Software Engineer</title>
+<script>
+  // Apply last-known theme immediately (before paint) to avoid a flash on repeat visits.
+  (function(){
+    try{
+      var t = localStorage.getItem('siteTheme');
+      if(t && t !== 'dark-green') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖥️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
+  /* Base palette = dark-green (default theme). Other 9 presets override just the accent
+     (and light presets also override the neutral/base colors) below. */
   :root{
     --bg:#07090a;
     --panel:rgba(16,22,19,0.6);
@@ -22,7 +33,46 @@
     --text:#b9c9c0;
     --text-dim:#5c6d64;
     --white:#eefff5;
+    --nav-bg:rgba(7,9,10,0.7);
+    --nav-bg-mobile:rgba(7,9,10,0.97);
+    --grain-opacity:0.025;
+    --vignette:rgba(0,0,0,0.6);
+    --scanline-blend:overlay;
+    --net-dot:61,255,160;
   }
+
+  /* Light base neutrals — applies to all light-* presets, accent overridden individually below */
+  :root[data-theme^="light"]{
+    --bg:#f4f7f5;
+    --panel:rgba(255,255,255,0.7);
+    --panel-solid:#ffffff;
+    --border:#dde6e0;
+    --border-hi:#bcd0c4;
+    --green:#0c8a4b;
+    --green-soft:#0a6b3a;
+    --green-dim:#128a52;
+    --text:#3a4a42;
+    --text-dim:#7c8b83;
+    --white:#0d1912;
+    --nav-bg:rgba(244,247,245,0.75);
+    --nav-bg-mobile:rgba(244,247,245,0.97);
+    --grain-opacity:0;
+    --vignette:rgba(0,0,0,0.03);
+    --scanline-blend:normal;
+    --net-dot:12,138,75;
+  }
+
+  /* ---- Dark accent variants (neutrals stay dark; only accent changes) ---- */
+  :root[data-theme="dark-cyan"]{ --green:#4dd8ff; --green-soft:#a3ecff; --green-dim:#1a7fa3; --net-dot:77,216,255; }
+  :root[data-theme="dark-amber"]{ --green:#ffb454; --green-soft:#ffd9a0; --green-dim:#b3762a; --net-dot:255,180,84; }
+  :root[data-theme="dark-purple"]{ --green:#b98bff; --green-soft:#ddc7ff; --green-dim:#6d3fc4; --net-dot:185,139,255; }
+  :root[data-theme="dark-red"]{ --green:#ff5c7a; --green-soft:#ffb0c0; --green-dim:#b3264a; --net-dot:255,92,122; }
+
+  /* ---- Light accent variants (neutrals stay light; only accent changes) ---- */
+  :root[data-theme="light-cyan"]{ --green:#0e7fa8; --green-soft:#0a5f80; --green-dim:#10829e; --net-dot:14,127,168; }
+  :root[data-theme="light-amber"]{ --green:#b4740a; --green-soft:#8a5806; --green-dim:#a5690a; --net-dot:180,116,10; }
+  :root[data-theme="light-purple"]{ --green:#7a4fd1; --green-soft:#5c3aa3; --green-dim:#7248c2; --net-dot:122,79,209; }
+  :root[data-theme="light-red"]{ --green:#c23856; --green-soft:#8f2740; --green-dim:#b83350; --net-dot:194,56,86; }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;}
   ::selection{background:var(--green);color:#04120a;}
@@ -33,16 +83,17 @@
     line-height:1.65;
     overflow-x:hidden;
     cursor:default;
+    transition:background .3s ease, color .3s ease;
   }
   #bg-canvas{position:fixed;inset:0;z-index:0;opacity:0.55;}
   .grain{
     position:fixed;inset:0;z-index:1;pointer-events:none;
-    background:repeating-linear-gradient(0deg, rgba(61,255,160,0.025) 0px, rgba(61,255,160,0.025) 1px, transparent 1px, transparent 3px);
-    mix-blend-mode:overlay;
+    background:repeating-linear-gradient(0deg, rgba(var(--net-dot),var(--grain-opacity)) 0px, rgba(var(--net-dot),var(--grain-opacity)) 1px, transparent 1px, transparent 3px);
+    mix-blend-mode:var(--scanline-blend);
   }
   .vignette{
     position:fixed;inset:0;z-index:1;pointer-events:none;
-    background:radial-gradient(ellipse at 50% 0%, transparent 40%, rgba(0,0,0,0.6) 100%);
+    background:radial-gradient(ellipse at 50% 0%, transparent 40%, var(--vignette) 100%);
   }
   a{color:var(--green);text-decoration:none;}
   .container{max-width:980px;margin:0 auto;padding:0 24px;position:relative;z-index:2;}
@@ -59,7 +110,7 @@
   /* Nav */
   nav{
     position:sticky;top:0;z-index:100;
-    background:rgba(7,9,10,0.7);
+    background:var(--nav-bg);
     backdrop-filter:blur(14px) saturate(140%);
     border-bottom:1px solid var(--border);
   }
@@ -96,7 +147,7 @@
     .nav-right{
       position:fixed;top:62px;left:0;right:0;
       flex-direction:column;align-items:stretch;gap:0;
-      background:rgba(7,9,10,0.97);backdrop-filter:blur(16px);
+      background:var(--nav-bg-mobile);backdrop-filter:blur(16px);
       border-bottom:1px solid var(--border);
       max-height:0;overflow:hidden;
       transition:max-height .3s ease;
@@ -139,7 +190,7 @@
   }
   .exp-line{
     position:absolute;top:14px;bottom:-22px;width:1.5px;left:50%;transform:translateX(-50%);
-    background:linear-gradient(to bottom, var(--green-dim), rgba(31,140,85,0.15));
+    background:linear-gradient(to bottom, var(--green-dim), rgba(var(--net-dot),0.15));
   }
   .exp-content{flex:1;padding-bottom:22px;cursor:pointer;min-width:0;}
   .exp-title{font-size:12.5px;color:var(--white);font-weight:600;line-height:1.3;transition:color .2s;}
@@ -183,7 +234,7 @@
     border:1px solid var(--border-hi);
     padding:6px 12px;border-radius:20px;
     margin-bottom:22px;
-    background:rgba(61,255,160,0.04);
+    background:rgba(var(--net-dot),0.04);
   }
   .eyebrow .ping{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
   .eyebrow.busy{color:var(--amber);border-color:#4a3a1e;background:rgba(255,180,84,0.05);}
@@ -220,18 +271,18 @@
     transition:all .25s;position:relative;overflow:hidden;
     background:rgba(255,255,255,0.02);
   }
-  .btn:hover{border-color:var(--green);color:var(--white);transform:translateY(-2px);box-shadow:0 8px 24px -8px rgba(61,255,160,0.35);}
+  .btn:hover{border-color:var(--green);color:var(--white);transform:translateY(-2px);box-shadow:0 8px 24px -8px rgba(var(--net-dot),0.35);}
   .btn.solid{background:var(--green);color:#04160c;font-weight:700;border-color:var(--green);}
-  .btn.solid:hover{background:var(--green-soft);box-shadow:0 8px 28px -6px rgba(61,255,160,0.55);}
+  .btn.solid:hover{background:var(--green-soft);box-shadow:0 8px 28px -6px rgba(var(--net-dot),0.55);}
   .btn.nav-signin{padding:7px 16px;font-size:12px;border-color:var(--green-dim);color:var(--green);}
-  .btn.nav-signin:hover{background:rgba(61,255,160,0.08);border-color:var(--green);}
+  .btn.nav-signin:hover{background:rgba(var(--net-dot),0.08);border-color:var(--green);}
 
   .term-window{
     border:1px solid var(--border-hi);
     border-radius:10px;
     background:var(--panel);
     backdrop-filter:blur(10px);
-    box-shadow:0 20px 60px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(61,255,160,0.03);
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(var(--net-dot),0.03);
     overflow:hidden;
     max-width:640px;
   }
@@ -264,9 +315,34 @@
   h2.sec-title .accent{color:var(--green);}
 
   /* About */
+  .about-grid{display:grid;grid-template-columns:1fr 260px;gap:44px;align-items:start;}
   .about-text p{margin-bottom:16px;color:var(--text);font-size:14.5px;max-width:720px;}
   .highlight{color:var(--green-soft);font-weight:600;}
   .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:16px;margin-top:36px;}
+
+  .about-photo-frame{
+    border:1px solid var(--border-hi);border-radius:12px;overflow:hidden;
+    background:var(--panel-solid);aspect-ratio:1/1;position:relative;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 30px rgba(var(--net-dot),0.04);
+  }
+  .about-photo-frame img{width:100%;height:100%;object-fit:cover;display:block;}
+  .about-photo-placeholder{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    color:var(--text-dim);padding:20px;text-align:center;
+  }
+  .avatar-initials{
+    width:80px;height:80px;border-radius:50%;
+    background:rgba(var(--net-dot),0.07);border:1px solid var(--border-hi);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:var(--green);
+  }
+  .about-photo-placeholder .ph-label{font-size:11px;letter-spacing:0.5px;color:var(--text-dim);}
+
+  @media(max-width:800px){
+    .about-grid{grid-template-columns:1fr;}
+    .about-photo-frame{max-width:240px;margin:0 auto;order:-1;}
+  }
   .stat{border:1px solid var(--border);background:rgba(255,255,255,0.015);border-radius:8px;padding:18px;text-align:center;transition:border-color .25s;}
   .stat:hover{border-color:var(--border-hi);}
   .stat .num{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:var(--green);}
@@ -302,7 +378,7 @@
   }
   .project-card::before{
     content:"";position:absolute;inset:0;
-    background:radial-gradient(300px circle at var(--mx) var(--my), rgba(61,255,160,0.08), transparent 70%);
+    background:radial-gradient(300px circle at var(--mx) var(--my), rgba(var(--net-dot),0.08), transparent 70%);
     opacity:0;transition:opacity .3s;pointer-events:none;
   }
   .project-card:hover{border-color:var(--border-hi);transform:translateY(-3px);}
@@ -318,7 +394,7 @@
     font-size:11px;color:var(--green-dim);
     border:1px solid var(--border);
     padding:4px 10px;border-radius:20px;
-    background:rgba(61,255,160,0.03);
+    background:rgba(var(--net-dot),0.03);
   }
 
   /* Certifications */
@@ -368,13 +444,13 @@
   /* Contact */
   .contact-box{
     border:1px solid var(--border-hi);
-    background:linear-gradient(160deg, rgba(61,255,160,0.05), rgba(255,255,255,0.01));
+    background:linear-gradient(160deg, rgba(var(--net-dot),0.05), rgba(255,255,255,0.01));
     border-radius:14px;padding:40px;text-align:left;
     position:relative;overflow:hidden;
   }
   .contact-box::after{
     content:"";position:absolute;top:-40%;right:-10%;width:280px;height:280px;
-    background:radial-gradient(circle, rgba(61,255,160,0.15), transparent 70%);
+    background:radial-gradient(circle, rgba(var(--net-dot),0.15), transparent 70%);
     pointer-events:none;
   }
   .contact-box h3{font-family:'Space Grotesk',sans-serif;color:var(--white);font-size:22px;margin-bottom:10px;}
@@ -435,6 +511,7 @@
           <a href="#projects" class="btn solid">View Projects →</a>
           <a href="#contact" class="btn">Get In Touch</a>
           <a href="mailto:talhakazmi301@gmail.com" class="btn">✉ Email</a>
+          <a href="#" id="cvBtn" class="btn" style="display:none;" target="_blank" rel="noopener">⬇ Download CV</a>
         </div>
 
         <div class="term-window">
@@ -473,18 +550,25 @@
   <div class="container reveal">
     <div class="sec-tag">whoami --verbose</div>
     <h2 class="sec-title">About <span class="accent">Me</span></h2>
-    <div class="about-text" id="bioContent">
-      <div class="skel skel-line w80"></div>
-      <div class="skel skel-line"></div>
-      <div class="skel skel-line w60"></div>
-      <div class="skel skel-line w80" style="margin-top:16px;"></div>
-      <div class="skel skel-line w60"></div>
-    </div>
-    <div class="stat-row">
-      <div class="stat"><div class="num">4+</div><div class="lbl">PRODUCTION SYSTEMS</div></div>
-      <div class="stat"><div class="num">3</div><div class="lbl">COUNTRIES SERVED</div></div>
-      <div class="stat"><div class="num">2</div><div class="lbl">SAP INTEGRATIONS</div></div>
-      <div class="stat"><div class="num">100%</div><div class="lbl">CLEAN ARCHITECTURE</div></div>
+    <div class="about-grid">
+      <div class="about-main">
+        <div class="about-text" id="bioContent">
+          <div class="skel skel-line w80"></div>
+          <div class="skel skel-line"></div>
+          <div class="skel skel-line w60"></div>
+          <div class="skel skel-line w80" style="margin-top:16px;"></div>
+          <div class="skel skel-line w60"></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="num">4+</div><div class="lbl">PRODUCTION SYSTEMS</div></div>
+          <div class="stat"><div class="num">3</div><div class="lbl">COUNTRIES SERVED</div></div>
+          <div class="stat"><div class="num">2</div><div class="lbl">SAP INTEGRATIONS</div></div>
+          <div class="stat"><div class="num">100%</div><div class="lbl">CLEAN ARCHITECTURE</div></div>
+        </div>
+      </div>
+      <div class="about-photo-frame" id="profilePhotoFrame">
+        <div class="skel" style="width:100%;height:100%;"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -775,6 +859,13 @@ function initNodes(){
 resize(); initNodes();
 window.addEventListener('resize', () => { resize(); initNodes(); });
 
+function getNetDotRGB(){
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--net-dot').trim();
+  return raw || '61,255,160';
+}
+let netDotRGB = getNetDotRGB();
+window.updateNetworkTheme = function(){ netDotRGB = getNetDotRGB(); };
+
 function drawNetwork(){
   ctx.clearRect(0,0,W,H);
   const viewTop = window.scrollY, viewBottom = viewTop + window.innerHeight;
@@ -791,14 +882,14 @@ function drawNetwork(){
       const dx = a.x-b.x, dy = a.y-b.y;
       const dist = Math.sqrt(dx*dx+dy*dy);
       if(dist < 140){
-        ctx.strokeStyle = `rgba(61,255,160,${0.12*(1-dist/140)})`;
+        ctx.strokeStyle = `rgba(${netDotRGB},${0.12*(1-dist/140)})`;
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
         ctx.stroke();
       }
     }
-    ctx.fillStyle = 'rgba(61,255,160,0.5)';
+    ctx.fillStyle = `rgba(${netDotRGB},0.5)`;
     ctx.beginPath();
     ctx.arc(a.x,a.y,1.6,0,Math.PI*2);
     ctx.fill();
@@ -846,6 +937,18 @@ drawNetwork();
       }
     }
 
+    // Theme
+    const VALID_THEMES = ['dark-green','dark-cyan','dark-amber','dark-purple','dark-red','light-green','light-cyan','light-amber','light-purple','light-red'];
+    let themeId = (data && data.theme && data.theme.id) || 'dark-green';
+    if(!VALID_THEMES.includes(themeId)){
+      // migrate old {mode:'light'|'dark'} schema if present
+      themeId = (data && data.theme && data.theme.mode === 'light') ? 'light-green' : 'dark-green';
+    }
+    if(themeId === 'dark-green') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', themeId);
+    try{ localStorage.setItem('siteTheme', themeId); }catch(e){}
+    if(window.updateNetworkTheme) window.updateNetworkTheme();
+
     // Availability — only touch the badge if we have explicit data, otherwise leave default
     if(data && data.availability && data.availability.status){
       const badge = document.getElementById('availabilityBadge');
@@ -857,6 +960,27 @@ drawNetwork();
         badge.classList.remove('busy');
         textEl.textContent = 'AVAILABLE FOR OPPORTUNITIES';
       }
+    }
+
+    // Profile photo
+    const photoFrame = document.getElementById('profilePhotoFrame');
+    if(data && data.profilePhotoUrl){
+      photoFrame.innerHTML = `<img src="${escapeHtml(data.profilePhotoUrl)}" alt="Syed Talha Ahmed Kazmi">`;
+    } else {
+      photoFrame.innerHTML = `
+        <div class="about-photo-placeholder">
+          <div class="avatar-initials">STK</div>
+          <div class="ph-label">No Photo Uploaded</div>
+        </div>`;
+    }
+
+    // CV / Resume download button
+    const cvBtn = document.getElementById('cvBtn');
+    if(data && data.cvUrl){
+      cvBtn.href = data.cvUrl;
+      cvBtn.style.display = '';
+    } else {
+      cvBtn.style.display = 'none';
     }
 
     // Bio
