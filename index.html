@@ -118,6 +118,65 @@
   @media(min-height:820px){
     header.hero{ min-height:calc(100vh - 62px); padding:64px 0 60px; }
   }
+
+  /* Hero grid: experience timeline + main content */
+  .hero-grid{display:grid;grid-template-columns:260px 1fr;gap:48px;align-items:stretch;}
+
+  .exp-timeline{
+    position:relative;
+    display:flex;flex-direction:column;
+    max-height:520px;overflow:hidden;
+    padding:24px 4px;
+    -webkit-mask-image:linear-gradient(to bottom, transparent 0, black 36px, black calc(100% - 30px), transparent 100%);
+    mask-image:linear-gradient(to bottom, transparent 0, black 36px, black calc(100% - 30px), transparent 100%);
+  }
+  .exp-item{display:flex;gap:12px;position:relative;}
+  .exp-marker{width:11px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;position:relative;}
+  .exp-dot{
+    width:9px;height:9px;border-radius:50%;background:var(--green);
+    box-shadow:0 0 8px var(--green);margin-top:5px;flex-shrink:0;z-index:1;
+    animation:pulse 2.6s ease-in-out infinite;
+  }
+  .exp-line{
+    position:absolute;top:14px;bottom:-22px;width:1.5px;left:50%;transform:translateX(-50%);
+    background:linear-gradient(to bottom, var(--green-dim), rgba(31,140,85,0.15));
+  }
+  .exp-content{flex:1;padding-bottom:22px;cursor:pointer;min-width:0;}
+  .exp-title{font-size:12.5px;color:var(--white);font-weight:600;line-height:1.3;transition:color .2s;}
+  .exp-content:hover .exp-title{color:var(--green);}
+  .exp-company{font-size:11px;color:var(--text-dim);margin-top:2px;}
+  .exp-date{font-size:10px;color:var(--green-dim);margin-top:2px;letter-spacing:0.3px;}
+
+  @media(max-width:900px){
+    .hero-grid{grid-template-columns:1fr;}
+    .exp-timeline{order:2;max-height:300px;margin-top:36px;padding:16px 4px;}
+    .hero-main{order:1;}
+  }
+
+  /* Experience modal */
+  .exp-modal-backdrop{
+    position:fixed;inset:0;z-index:300;display:none;
+    background:rgba(4,6,5,0.75);backdrop-filter:blur(6px);
+    align-items:center;justify-content:center;padding:24px;
+  }
+  .exp-modal-backdrop.open{display:flex;}
+  .exp-modal{
+    max-width:480px;width:100%;
+    background:var(--panel-solid);border:1px solid var(--border-hi);border-radius:14px;
+    padding:32px;position:relative;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,0.7);
+  }
+  .exp-modal-close{
+    position:absolute;top:16px;right:16px;background:none;border:1px solid var(--border);
+    color:var(--text-dim);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:14px;
+    transition:all .2s;
+  }
+  .exp-modal-close:hover{color:var(--white);border-color:var(--green-dim);}
+  .exp-modal-eyebrow{color:var(--green-dim);font-size:11.5px;letter-spacing:0.5px;margin-bottom:6px;}
+  .exp-modal h3{font-family:'Space Grotesk',sans-serif;color:var(--white);font-size:20px;margin-bottom:8px;padding-right:30px;}
+  .exp-modal-meta{color:var(--amber);font-size:12px;margin-bottom:16px;}
+  .exp-modal-desc{color:var(--text);font-size:13.5px;margin-bottom:16px;}
+
   .eyebrow{
     display:inline-flex;align-items:center;gap:8px;
     color:var(--green-dim);font-size:12px;letter-spacing:1px;
@@ -262,6 +321,50 @@
     background:rgba(61,255,160,0.03);
   }
 
+  /* Certifications */
+  .cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px;}
+  .cert-card{
+    border:1px solid var(--border);background:var(--panel-solid);border-radius:10px;
+    overflow:hidden;transition:border-color .25s, transform .25s;
+  }
+  .cert-card:hover{border-color:var(--border-hi);transform:translateY(-3px);}
+  .cert-thumb{width:100%;height:130px;object-fit:cover;display:block;background:#0b100e;}
+  .cert-thumb-pdf{
+    width:100%;height:130px;display:flex;align-items:center;justify-content:center;
+    background:#0b100e;color:var(--green-dim);font-size:12px;letter-spacing:1px;
+  }
+  .cert-body{padding:14px 16px 16px;}
+  .cert-name{color:var(--white);font-size:13.5px;font-weight:600;margin-bottom:4px;}
+  .cert-issuer{color:var(--text-dim);font-size:11.5px;}
+  .cert-date{color:var(--green-dim);font-size:10.5px;margin-top:4px;}
+  .cert-link{display:inline-block;margin-top:10px;font-size:11.5px;color:var(--green);}
+
+  /* Skeleton loading */
+  @keyframes shimmer{0%{background-position:-400px 0;}100%{background-position:400px 0;}}
+  .skel{
+    background:linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 37%, rgba(255,255,255,0.03) 63%);
+    background-size:400px 100%;
+    animation:shimmer 1.4s ease-in-out infinite;
+    border-radius:6px;
+  }
+  .skel-line{height:13px;margin-bottom:10px;}
+  .skel-line.w60{width:60%;}
+  .skel-line.w80{width:80%;}
+  .skel-chip{height:54px;border-radius:8px;}
+  .skel-card{height:150px;border-radius:10px;}
+  .skel-exp-item{display:flex;gap:12px;margin-bottom:22px;}
+  .skel-exp-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+  .skel-exp-lines{flex:1;}
+
+  /* Empty state */
+  .empty-state{
+    border:1px dashed var(--border-hi);border-radius:10px;
+    padding:26px;text-align:center;color:var(--text-dim);font-size:12.5px;
+    grid-column:1/-1;
+  }
+  .empty-state .ico{font-size:18px;display:block;margin-bottom:6px;opacity:.6;}
+  .empty-state.small{padding:18px;font-size:11.5px;}
+
   /* Contact */
   .contact-box{
     border:1px solid var(--border-hi);
@@ -298,6 +401,7 @@
         <a href="#about" data-nav>about</a>
         <a href="#skills" data-nav>skills</a>
         <a href="#projects" data-nav>projects</a>
+        <a href="#certifications" data-nav>certifications</a>
         <a href="#contact" data-nav>contact</a>
       </div>
       <a href="admin.html" class="btn nav-signin">Sign In</a>
@@ -307,55 +411,74 @@
 
 <header class="hero">
   <div class="container">
-    <div class="eyebrow" id="availabilityBadge"><span class="ping" id="availabilityDot"></span> <span id="availabilityText">AVAILABLE FOR OPPORTUNITIES</span></div>
-    <div class="hero-name">Syed Talha<br>Ahmed Kazmi</div>
-    <div class="hero-role">&gt; <span id="roleType"></span><span class="caret"></span></div>
-    <p class="hero-bio">
-      Building enterprise-grade systems on <span class="hl">.NET</span> with <span class="hl">Clean Architecture</span> —
-      wiring services together with <span class="hl">gRPC</span>, <span class="hl">REST</span>,
-      <span class="hl">NATS</span>, and real-time <span class="hl">WebSockets</span>, and shipping
-      <span class="hl">React</span> front-ends on top. Delivered production systems across the GCC,
-      several deeply integrated with <span class="hl">SAP</span>.
-    </p>
-    <div class="hero-links">
-      <a href="#projects" class="btn solid">View Projects →</a>
-      <a href="#contact" class="btn">Get In Touch</a>
-      <a href="mailto:talhakazmi301@gmail.com" class="btn">✉ Email</a>
-    </div>
+    <div class="hero-grid">
 
-    <div class="term-window">
-      <div class="term-bar">
-        <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
-        <div class="term-title">talha@portfolio — zsh — 80×20</div>
+      <aside class="exp-timeline" id="expTimeline">
+        <!-- skeleton shown until Firestore responds; then real items or an empty state -->
+        <div class="skel-exp-item"><span class="skel skel-exp-dot"></span><div class="skel-exp-lines"><div class="skel skel-line w80"></div><div class="skel skel-line w60"></div></div></div>
+        <div class="skel-exp-item"><span class="skel skel-exp-dot"></span><div class="skel-exp-lines"><div class="skel skel-line w80"></div><div class="skel skel-line w60"></div></div></div>
+        <div class="skel-exp-item"><span class="skel skel-exp-dot"></span><div class="skel-exp-lines"><div class="skel skel-line w80"></div><div class="skel skel-line w60"></div></div></div>
+      </aside>
+
+      <div class="hero-main">
+        <div class="eyebrow" id="availabilityBadge"><span class="ping" id="availabilityDot"></span> <span id="availabilityText">AVAILABLE FOR OPPORTUNITIES</span></div>
+        <div class="hero-name">Syed Talha<br>Ahmed Kazmi</div>
+        <div class="hero-role">&gt; <span id="roleType"></span><span class="caret"></span></div>
+        <p class="hero-bio">
+          Building enterprise-grade systems on <span class="hl">.NET</span> with <span class="hl">Clean Architecture</span> —
+          wiring services together with <span class="hl">gRPC</span>, <span class="hl">REST</span>,
+          <span class="hl">NATS</span>, and real-time <span class="hl">WebSockets</span>, and shipping
+          <span class="hl">React</span> front-ends on top. Delivered production systems across the GCC,
+          several deeply integrated with <span class="hl">SAP</span>.
+        </p>
+        <div class="hero-links">
+          <a href="#projects" class="btn solid">View Projects →</a>
+          <a href="#contact" class="btn">Get In Touch</a>
+          <a href="mailto:talhakazmi301@gmail.com" class="btn">✉ Email</a>
+        </div>
+
+        <div class="term-window">
+          <div class="term-bar">
+            <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+            <div class="term-title">talha@portfolio — zsh — 80×20</div>
+          </div>
+          <div class="term-body">
+            <div class="term-line"><span class="p1">talha@dev</span> <span class="p2">~</span> % git log --oneline -4</div>
+            <div class="term-line">a1f3c9d <span class="type-out" id="l1"></span></div>
+            <div class="term-line">7c02e11 <span class="type-out" id="l2"></span></div>
+            <div class="term-line">e59ab04 <span class="type-out" id="l3"></span></div>
+            <div class="term-line">3ff10bd <span class="type-out" id="l4"></span></div>
+            <div class="term-line" style="margin-top:10px;"><span class="p1">talha@dev</span> <span class="p2">~</span> % <span class="caret" style="background:var(--green)"></span></div>
+          </div>
+        </div>
       </div>
-      <div class="term-body">
-        <div class="term-line"><span class="p1">talha@dev</span> <span class="p2">~</span> % git log --oneline -4</div>
-        <div class="term-line">a1f3c9d <span class="type-out" id="l1"></span></div>
-        <div class="term-line">7c02e11 <span class="type-out" id="l2"></span></div>
-        <div class="term-line">e59ab04 <span class="type-out" id="l3"></span></div>
-        <div class="term-line">3ff10bd <span class="type-out" id="l4"></span></div>
-        <div class="term-line" style="margin-top:10px;"><span class="p1">talha@dev</span> <span class="p2">~</span> % <span class="caret" style="background:var(--green)"></span></div>
-      </div>
+
     </div>
   </div>
 </header>
+
+<!-- Experience detail modal -->
+<div class="exp-modal-backdrop" id="expModalBackdrop">
+  <div class="exp-modal" role="dialog" aria-modal="true">
+    <button class="exp-modal-close" id="expModalClose" aria-label="Close">✕</button>
+    <div class="exp-modal-eyebrow" id="expModalCompany"></div>
+    <h3 id="expModalTitle"></h3>
+    <div class="exp-modal-meta" id="expModalMeta"></div>
+    <p class="exp-modal-desc" id="expModalDesc"></p>
+    <div class="stack" id="expModalSkills"></div>
+  </div>
+</div>
 
 <section id="about">
   <div class="container reveal">
     <div class="sec-tag">whoami --verbose</div>
     <h2 class="sec-title">About <span class="accent">Me</span></h2>
     <div class="about-text" id="bioContent">
-      <p>
-        I'm a software engineer who works across the stack — from integrating enterprise SAP EDI pipelines
-        to designing service-to-service communication with gRPC, and building responsive React interfaces
-        on top. My focus has largely been on Clean Architecture backends in .NET, wiring together REST APIs,
-        gRPC microservices, NATS-based messaging, and WebSockets for real-time features.
-      </p>
-      <p>
-        I've shipped production systems for clients in the GCC region (Saudi Arabia and Oman), working on
-        everything from CRM platforms and HR management tools to invoice/procurement systems and budget &
-        asset management software — several of them integrated directly with SAP.
-      </p>
+      <div class="skel skel-line w80"></div>
+      <div class="skel skel-line"></div>
+      <div class="skel skel-line w60"></div>
+      <div class="skel skel-line w80" style="margin-top:16px;"></div>
+      <div class="skel skel-line w60"></div>
     </div>
     <div class="stat-row">
       <div class="stat"><div class="num">4+</div><div class="lbl">PRODUCTION SYSTEMS</div></div>
@@ -371,16 +494,8 @@
     <div class="sec-tag">ls ./skills --sort=proficiency</div>
     <h2 class="sec-title">Tech <span class="accent">Stack</span></h2>
     <div class="skills-grid" id="skillsGrid">
-      <div class="skill-chip"><div class="skill-top"><span>.NET / C#</span><span class="lvl">Expert</span></div><div class="bar"><i data-w="95"></i></div></div>
-      <div class="skill-chip"><div class="skill-top"><span>Clean Architecture</span><span class="lvl">Expert</span></div><div class="bar"><i data-w="92"></i></div></div>
-      <div class="skill-chip"><div class="skill-top"><span>gRPC</span><span class="lvl">Advanced</span></div><div class="bar"><i data-w="88"></i></div></div>
-      <div class="skill-chip"><div class="skill-top"><span>REST APIs</span><span class="lvl">Expert</span></div><div class="bar"><i data-w="93"></i></div></div>
-      <div class="skill-chip"><div class="skill-top"><span>NATS</span><span class="lvl">Advanced</span></div><div class="bar"><i data-w="82"></i></div></div>
-      <div class="skill-chip"><div class="skill-top"><span>WebSockets</span><span class="lvl">Advanced</span></div><div class="bar"><i data-w="85"></i></div></div>
-      <div class="skill-chip"><div class="skill-top"><span>SAP EDI Integration</span><span class="lvl">Advanced</span></div><div class="bar"><i data-w="87"></i></div></div>
-      <div class="skill-chip"><div class="skill-top"><span>React</span><span class="lvl">Proficient</span></div><div class="bar"><i data-w="78"></i></div></div>
-      <div class="skill-chip"><div class="skill-top"><span>Microservices</span><span class="lvl">Advanced</span></div><div class="bar"><i data-w="86"></i></div></div>
-      <div class="skill-chip"><div class="skill-top"><span>SQL Server</span><span class="lvl">Proficient</span></div><div class="bar"><i data-w="80"></i></div></div>
+      <div class="skel skel-chip"></div><div class="skel skel-chip"></div><div class="skel skel-chip"></div>
+      <div class="skel skel-chip"></div><div class="skel skel-chip"></div><div class="skel skel-chip"></div>
     </div>
   </div>
 </section>
@@ -390,56 +505,21 @@
     <div class="sec-tag">git log --oneline --projects</div>
     <h2 class="sec-title">Featured <span class="accent">Projects</span></h2>
     <div class="projects" id="projectsList">
+      <div class="skel skel-card"></div>
+      <div class="skel skel-card"></div>
+      <div class="skel skel-card"></div>
+    </div>
+  </div>
+</section>
 
-      <div class="project-card" data-tilt>
-        <div class="project-head">
-          <div class="project-title">AGeek CRM</div>
-          <div class="project-meta">Dec — Mar</div>
-        </div>
-        <div class="project-client">Client: Shakir Groups — Saudi Arabia</div>
-        <p class="project-desc">
-          A CRM platform built on Clean Architecture, with internal services communicating over gRPC.
-          Delivered end-to-end for the client's sales and customer management operations.
-        </p>
-        <div class="stack"><span>.NET</span><span>Clean Architecture</span><span>gRPC</span></div>
-      </div>
-
-      <div class="project-card" data-tilt>
-        <div class="project-head">
-          <div class="project-title">HR Management System</div>
-        </div>
-        <div class="project-client">Product of Qbs Co. Ltd</div>
-        <p class="project-desc">
-          A smart HR management product enabling organizations to track employee history and manage
-          HR operations end-to-end, built with .NET and gRPC-based service communication.
-        </p>
-        <div class="stack"><span>.NET</span><span>gRPC</span><span>HR Tech</span></div>
-      </div>
-
-      <div class="project-card" data-tilt>
-        <div class="project-head">
-          <div class="project-title">WasalHub</div>
-        </div>
-        <div class="project-client">Client: Oman</div>
-        <p class="project-desc">
-          An invoice management system integrated with SAP, designed to give users a friction-free,
-          user-friendly procurement lifecycle from request through to invoicing.
-        </p>
-        <div class="stack"><span>SAP Integration</span><span>Procurement</span><span>.NET</span></div>
-      </div>
-
-      <div class="project-card" data-tilt>
-        <div class="project-head">
-          <div class="project-title">MuntQ</div>
-        </div>
-        <div class="project-client">Client: Saudi Arabia</div>
-        <p class="project-desc">
-          A budget and asset management system integrated with SAP, giving organizations budget
-          assessment tools and a streamlined asset request workflow.
-        </p>
-        <div class="stack"><span>SAP Integration</span><span>Budgeting</span><span>Asset Management</span></div>
-      </div>
-
+<section id="certifications">
+  <div class="container reveal">
+    <div class="sec-tag">ls ./certifications</div>
+    <h2 class="sec-title">Certifications <span class="accent">& Credentials</span></h2>
+    <div class="cert-grid" id="certGrid">
+      <div class="skel skel-card"></div>
+      <div class="skel skel-card"></div>
+      <div class="skel skel-card"></div>
     </div>
   </div>
 </section>
@@ -466,6 +546,94 @@
 
 <script>
 document.getElementById('year').textContent = new Date().getFullYear();
+
+/* ---------- experience timeline + modal ---------- */
+let EXPERIENCE_DATA = [
+  {
+    title: "Associate Software Engineer .Net",
+    company: "QBS Co",
+    dateRange: "Mar 2025 — Present",
+    location: "Karachi, Sindh, Pakistan · On-site",
+    desc: "Working on real-world .NET solutions using Clean Architecture, PostgreSQL, Docker, and C# — reinforcing key software design principles through production work.",
+    skills: [".NET Core"]
+  },
+  {
+    title: "Trainee Software Engineer — .Net Developer",
+    company: "QBS Co",
+    dateRange: "Dec 2024 — Mar 2025",
+    location: "Karachi, Sindh, Pakistan · On-site",
+    desc: "Started as a trainee .NET developer, ramping up on the team's Clean Architecture codebase and development practices.",
+    skills: [".NET"]
+  },
+  {
+    title: "Junior Developer — Integration Specialist | IBM Sterling",
+    company: "ECOM Specialist, LLC · Contract",
+    dateRange: "Sep 2024 — Dec 2024",
+    location: "Dallas, Texas, United States · Remote",
+    desc: "Worked on integrating business systems (SAP) using IBM Sterling, streamlining data exchange between enterprise systems.",
+    skills: ["SAP EDI", "EDI ANSI X12"]
+  },
+  {
+    title: "Web Development Intern",
+    company: "XPACE Technologies (Pvt) Ltd · Internship",
+    dateRange: "Aug 2024 — Nov 2024",
+    location: "Karachi Division, Sindh, Pakistan · Remote",
+    desc: "Gained hands-on experience in front-end and back-end development using HTML, CSS, and JavaScript.",
+    skills: ["Web Development", "Back-End Web Development"]
+  },
+  {
+    title: "Trainee Engineer — Cloud & DevOps Trainee | AWS & Azure",
+    company: "CodeNConsults · Full-time",
+    dateRange: "Sep 2023",
+    location: "Karachi, Sindh, Pakistan · On-site",
+    desc: "Gained foundational experience with AWS (EC2, Apache, SSH tunneling), Ubuntu server setup, and Node.js.",
+    skills: ["AWS", "Apache"]
+  }
+];
+
+function openExpModal(i){
+  const e = EXPERIENCE_DATA[i];
+  if(!e) return;
+  document.getElementById('expModalCompany').textContent = e.company || '';
+  document.getElementById('expModalTitle').textContent = e.title || '';
+  document.getElementById('expModalMeta').textContent = [e.dateRange, e.location].filter(Boolean).join(' · ');
+  document.getElementById('expModalDesc').textContent = e.desc || '';
+  document.getElementById('expModalSkills').innerHTML = (e.skills || []).map(s => `<span>${escHtml(s)}</span>`).join('');
+  document.getElementById('expModalBackdrop').classList.add('open');
+}
+function closeExpModal(){ document.getElementById('expModalBackdrop').classList.remove('open'); }
+
+document.getElementById('expTimeline').addEventListener('click', (e) => {
+  const item = e.target.closest('.exp-item');
+  if(item) openExpModal(Number(item.dataset.i));
+});
+document.getElementById('expModalClose').addEventListener('click', closeExpModal);
+document.getElementById('expModalBackdrop').addEventListener('click', (e) => {
+  if(e.target.id === 'expModalBackdrop') closeExpModal();
+});
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeExpModal(); });
+
+function escHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function renderExperienceTimeline(list){
+  if(!Array.isArray(list) || !list.length){ renderExperienceEmpty(); return; }
+  EXPERIENCE_DATA = list;
+  const el = document.getElementById('expTimeline');
+  el.innerHTML = list.map((e,i) => `
+    <div class="exp-item" data-i="${i}">
+      <div class="exp-marker"><span class="exp-dot"></span>${i < list.length-1 ? '<span class="exp-line"></span>' : ''}</div>
+      <div class="exp-content">
+        <div class="exp-title">${escHtml(e.title)}</div>
+        <div class="exp-company">${escHtml(e.company)}</div>
+        <div class="exp-date">${escHtml(e.dateRange)}</div>
+      </div>
+    </div>`).join('');
+}
+function renderExperienceEmpty(){
+  document.getElementById('expTimeline').innerHTML =
+    '<div class="empty-state small"><span class="ico">◇</span>No Experience Added Yet</div>';
+}
 
 /* ---------- mobile nav toggle ---------- */
 const hamburgerBtn = document.getElementById('hamburgerBtn');
@@ -499,7 +667,7 @@ window.addEventListener('scroll', () => {
 });
 
 const navLinks = document.querySelectorAll('[data-nav]');
-const sections = ['about','skills','projects','contact'].map(id => document.getElementById(id));
+const sections = ['about','skills','projects','certifications','contact'].map(id => document.getElementById(id));
 const navObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if(entry.isIntersecting){
@@ -658,58 +826,105 @@ drawNetwork();
     });
   }
 
+  function emptyState(id, icon, text, small){
+    document.getElementById(id).innerHTML =
+      `<div class="empty-state${small ? ' small' : ''}"><span class="ico">${icon}</span>${text}</div>`;
+  }
+
   async function loadContent(){
-    if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') return; // not configured yet, keep static fallback
-    try{
-      const app = initializeApp(window.FIREBASE_CONFIG);
-      const db = getFirestore(app);
-      const snap = await getDoc(doc(db, 'portfolio', 'content'));
-      if(!snap.exists()) return;
-      const data = snap.data();
+    const configured = window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY';
+    let data = null;
 
-      if(data.availability && data.availability.status){
-        const badge = document.getElementById('availabilityBadge');
-        const textEl = document.getElementById('availabilityText');
-        if(data.availability.status === 'no'){
-          badge.classList.add('busy');
-          textEl.textContent = 'CURRENTLY AT ' + (data.availability.company || 'A COMPANY').toUpperCase();
-        } else {
-          badge.classList.remove('busy');
-          textEl.textContent = 'AVAILABLE FOR OPPORTUNITIES';
-        }
+    if(configured){
+      try{
+        const app = initializeApp(window.FIREBASE_CONFIG);
+        const db = getFirestore(app);
+        const snap = await getDoc(doc(db, 'portfolio', 'content'));
+        if(snap.exists()) data = snap.data();
+      }catch(e){
+        console.warn('Live content unavailable:', e);
       }
+    }
 
-      if(Array.isArray(data.bio) && data.bio.length){
-        document.getElementById('bioContent').innerHTML =
-          data.bio.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+    // Availability — only touch the badge if we have explicit data, otherwise leave default
+    if(data && data.availability && data.availability.status){
+      const badge = document.getElementById('availabilityBadge');
+      const textEl = document.getElementById('availabilityText');
+      if(data.availability.status === 'no'){
+        badge.classList.add('busy');
+        textEl.textContent = 'CURRENTLY AT ' + (data.availability.company || 'A COMPANY').toUpperCase();
+      } else {
+        badge.classList.remove('busy');
+        textEl.textContent = 'AVAILABLE FOR OPPORTUNITIES';
       }
+    }
 
-      if(Array.isArray(data.skills) && data.skills.length){
-        const grid = document.getElementById('skillsGrid');
-        grid.innerHTML = data.skills.map(s => `
-          <div class="skill-chip">
-            <div class="skill-top"><span>${escapeHtml(s.name)}</span><span class="lvl">${escapeHtml(s.level)}</span></div>
-            <div class="bar"><i data-w="${Number(s.pct)||0}"></i></div>
-          </div>`).join('');
-        grid.querySelectorAll('.bar i').forEach(bar => { bar.style.width = bar.dataset.w + '%'; });
-      }
+    // Bio
+    if(data && Array.isArray(data.bio) && data.bio.length){
+      document.getElementById('bioContent').innerHTML = data.bio.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+    } else {
+      emptyState('bioContent', '◇', 'No Bio Added Yet', true);
+    }
 
-      if(Array.isArray(data.projects) && data.projects.length){
-        const list = document.getElementById('projectsList');
-        list.innerHTML = data.projects.map(p => `
-          <div class="project-card" data-tilt>
-            <div class="project-head">
-              <div class="project-title">${escapeHtml(p.title)}</div>
-              <div class="project-meta">${escapeHtml(p.meta)}</div>
-            </div>
-            <div class="project-client">${escapeHtml(p.client)}</div>
-            <p class="project-desc">${escapeHtml(p.desc)}</p>
-            <div class="stack">${(p.stack||[]).map(t => `<span>${escapeHtml(t)}</span>`).join('')}</div>
-          </div>`).join('');
-        list.querySelectorAll('[data-tilt]').forEach(attachTilt);
-      }
-    }catch(e){
-      console.warn('Live content unavailable, showing default content:', e);
+    // Skills
+    if(data && Array.isArray(data.skills) && data.skills.length){
+      const grid = document.getElementById('skillsGrid');
+      grid.innerHTML = data.skills.map(s => `
+        <div class="skill-chip">
+          <div class="skill-top"><span>${escapeHtml(s.name)}</span><span class="lvl">${escapeHtml(s.level)}</span></div>
+          <div class="bar"><i data-w="${Number(s.pct)||0}"></i></div>
+        </div>`).join('');
+      grid.querySelectorAll('.bar i').forEach(bar => { bar.style.width = bar.dataset.w + '%'; });
+    } else {
+      emptyState('skillsGrid', '◇', 'No Skills Listed Yet');
+    }
+
+    // Projects
+    if(data && Array.isArray(data.projects) && data.projects.length){
+      const list = document.getElementById('projectsList');
+      list.innerHTML = data.projects.map(p => `
+        <div class="project-card" data-tilt>
+          <div class="project-head">
+            <div class="project-title">${escapeHtml(p.title)}</div>
+            <div class="project-meta">${escapeHtml(p.meta)}</div>
+          </div>
+          <div class="project-client">${escapeHtml(p.client)}</div>
+          <p class="project-desc">${escapeHtml(p.desc)}</p>
+          <div class="stack">${(p.stack||[]).map(t => `<span>${escapeHtml(t)}</span>`).join('')}</div>
+        </div>`).join('');
+      list.querySelectorAll('[data-tilt]').forEach(attachTilt);
+    } else {
+      emptyState('projectsList', '◇', 'No Projects Added Yet');
+    }
+
+    // Certifications
+    if(data && Array.isArray(data.certifications) && data.certifications.length){
+      const grid = document.getElementById('certGrid');
+      grid.innerHTML = data.certifications.map(c => {
+        const thumb = c.fileType === 'pdf'
+          ? `<div class="cert-thumb-pdf">PDF DOCUMENT</div>`
+          : (c.fileUrl ? `<img class="cert-thumb" src="${escapeHtml(c.fileUrl)}" alt="${escapeHtml(c.name)}">` : `<div class="cert-thumb-pdf">CERTIFICATE</div>`);
+        const link = c.credentialUrl ? `<a class="cert-link" href="${escapeHtml(c.credentialUrl)}" target="_blank" rel="noopener">View Credential ↗</a>`
+          : (c.fileUrl ? `<a class="cert-link" href="${escapeHtml(c.fileUrl)}" target="_blank" rel="noopener">View Certificate ↗</a>` : '');
+        return `<div class="cert-card">
+          ${thumb}
+          <div class="cert-body">
+            <div class="cert-name">${escapeHtml(c.name)}</div>
+            <div class="cert-issuer">${escapeHtml(c.issuer)}</div>
+            <div class="cert-date">${escapeHtml(c.date)}</div>
+            ${link}
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      emptyState('certGrid', '◇', 'No Certifications Added Yet');
+    }
+
+    // Experience
+    if(data && Array.isArray(data.experience) && data.experience.length && window.renderExperienceTimeline){
+      window.renderExperienceTimeline(data.experience);
+    } else if(window.renderExperienceEmpty){
+      window.renderExperienceEmpty();
     }
   }
   loadContent();

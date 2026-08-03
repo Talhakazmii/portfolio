@@ -203,34 +203,54 @@
         </div>
       </div>
 
+      <!-- EXPERIENCE -->
+      <div class="card">
+        <h2>Experience</h2>
+        <div class="hint">Shown as the connected-dot timeline in the hero. Ordered top to bottom as entered — put most recent first. Description and skills show in the popup when a visitor clicks an entry.</div>
+        <div class="toolbar" style="margin-top:12px;">
+          <button id="addExp" class="small">+ Add experience</button>
+        </div>
+        <div id="expRows" style="margin-top:14px;"></div>
+      </div>
+
+      <!-- CERTIFICATIONS -->
+      <div class="card">
+        <h2>Certifications</h2>
+        <div class="hint">Upload a certificate image or PDF along with its details. Shown as cards on the site.</div>
+        <div class="toolbar" style="margin-top:12px;">
+          <button id="addCert" class="small">+ Add certification</button>
+        </div>
+        <div id="certRows" style="margin-top:14px;"></div>
+      </div>
+
       <!-- BIO -->
       <div class="card">
         <h2>Bio</h2>
         <div class="hint">Each entry becomes one paragraph on the About section.</div>
-        <div id="bioRows"></div>
-        <div class="toolbar">
+        <div class="toolbar" style="margin-top:12px;">
           <button id="addBio" class="small">+ Add paragraph</button>
         </div>
+        <div id="bioRows" style="margin-top:14px;"></div>
       </div>
 
       <!-- SKILLS -->
       <div class="card">
         <h2>Skills</h2>
         <div class="hint">Name, proficiency label (e.g. Expert / Advanced / Proficient), and bar percentage (0–100).</div>
-        <div id="skillRows"></div>
-        <div class="toolbar">
+        <div class="toolbar" style="margin-top:12px;">
           <button id="addSkill" class="small">+ Add skill</button>
         </div>
+        <div id="skillRows" style="margin-top:14px;"></div>
       </div>
 
       <!-- PROJECTS -->
       <div class="card">
         <h2>Projects</h2>
         <div class="hint">Stack tags are comma-separated (e.g. .NET, gRPC, SAP Integration).</div>
-        <div id="projectRows"></div>
-        <div class="toolbar">
+        <div class="toolbar" style="margin-top:12px;">
           <button id="addProject" class="small">+ Add project</button>
         </div>
+        <div id="projectRows" style="margin-top:14px;"></div>
       </div>
 
       <div class="toolbar">
@@ -256,6 +276,9 @@ import {
 import {
   getFirestore, doc, getDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import {
+  getStorage, ref, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
 if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
   document.getElementById('loginBox').innerHTML =
@@ -265,10 +288,54 @@ if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
 const app = initializeApp(window.FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 const ADMIN_EMAIL = window.ADMIN_EMAIL || '';
 
 const DEFAULTS = {
   availability: { status: "yes", company: "" },
+  certifications: [],
+  experience: [
+    {
+      title: "Associate Software Engineer .Net",
+      company: "QBS Co",
+      dateRange: "Mar 2025 — Present",
+      location: "Karachi, Sindh, Pakistan · On-site",
+      desc: "Working on real-world .NET solutions using Clean Architecture, PostgreSQL, Docker, and C# — reinforcing key software design principles through production work.",
+      skills: [".NET Core"]
+    },
+    {
+      title: "Trainee Software Engineer — .Net Developer",
+      company: "QBS Co",
+      dateRange: "Dec 2024 — Mar 2025",
+      location: "Karachi, Sindh, Pakistan · On-site",
+      desc: "Started as a trainee .NET developer, ramping up on the team's Clean Architecture codebase and development practices.",
+      skills: [".NET"]
+    },
+    {
+      title: "Junior Developer — Integration Specialist | IBM Sterling",
+      company: "ECOM Specialist, LLC · Contract",
+      dateRange: "Sep 2024 — Dec 2024",
+      location: "Dallas, Texas, United States · Remote",
+      desc: "Worked on integrating business systems (SAP) using IBM Sterling, streamlining data exchange between enterprise systems.",
+      skills: ["SAP EDI", "EDI ANSI X12"]
+    },
+    {
+      title: "Web Development Intern",
+      company: "XPACE Technologies (Pvt) Ltd · Internship",
+      dateRange: "Aug 2024 — Nov 2024",
+      location: "Karachi Division, Sindh, Pakistan · Remote",
+      desc: "Gained hands-on experience in front-end and back-end development using HTML, CSS, and JavaScript.",
+      skills: ["Web Development", "Back-End Web Development"]
+    },
+    {
+      title: "Trainee Engineer — Cloud & DevOps Trainee | AWS & Azure",
+      company: "CodeNConsults · Full-time",
+      dateRange: "Sep 2023",
+      location: "Karachi, Sindh, Pakistan · On-site",
+      desc: "Gained foundational experience with AWS (EC2, Apache, SSH tunneling), Ubuntu server setup, and Node.js.",
+      skills: ["AWS", "Apache"]
+    }
+  ],
   bio: [
     "I'm a software engineer who works across the stack — from integrating enterprise SAP EDI pipelines to designing service-to-service communication with gRPC, and building responsive React interfaces on top. My focus has largely been on Clean Architecture backends in .NET, wiring together REST APIs, gRPC microservices, NATS-based messaging, and WebSockets for real-time features.",
     "I've shipped production systems for clients in the GCC region (Saudi Arabia and Oman), working on everything from CRM platforms and HR management tools to invoice/procurement systems and budget & asset management software — several of them integrated directly with SAP."
@@ -301,7 +368,7 @@ const DEFAULTS = {
   ]
 };
 
-let state = { availability:{status:"yes",company:""}, bio:[], skills:[], projects:[] };
+let state = { availability:{status:"yes",company:""}, experience:[], certifications:[], bio:[], skills:[], projects:[] };
 
 /* ---------- view switching ---------- */
 function switchView(name){
@@ -321,6 +388,8 @@ function renderDashboard(){
   const a = state.availability || {status:'yes', company:''};
   const availLabel = a.status === 'no' ? ('Not available — ' + (a.company || 'unspecified')) : 'Available for opportunities';
   el.innerHTML = `
+    <div class="dash-stat"><div class="num">${state.experience.length}</div><div class="lbl">EXPERIENCE ENTRIES</div></div>
+    <div class="dash-stat"><div class="num">${state.certifications.length}</div><div class="lbl">CERTIFICATIONS</div></div>
     <div class="dash-stat"><div class="num">${state.projects.length}</div><div class="lbl">PROJECTS</div></div>
     <div class="dash-stat"><div class="num">${state.skills.length}</div><div class="lbl">SKILLS LISTED</div></div>
     <div class="dash-stat"><div class="num">${state.bio.length}</div><div class="lbl">BIO PARAGRAPHS</div></div>
@@ -345,6 +414,79 @@ document.getElementById('availNo').addEventListener('change', () => {
 });
 document.getElementById('companyInput').addEventListener('input', (e) => {
   state.availability.company = e.target.value;
+});
+
+function renderExperience(){
+  const el = document.getElementById('expRows');
+  el.innerHTML = state.experience.map((x,i) => `
+    <div class="row">
+      <div class="row-head"><span>Experience ${i+1}${i===0 ? ' (most recent)' : ''}</span>
+        <button class="small danger" data-remove="experience" data-i="${i}">Remove</button>
+      </div>
+      <div class="grid2">
+        <div><label>Job title</label><input data-field="experience.title" data-i="${i}" value="${escAttr(x.title)}"></div>
+        <div><label>Company</label><input data-field="experience.company" data-i="${i}" value="${escAttr(x.company)}"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Date range</label><input data-field="experience.dateRange" data-i="${i}" placeholder="e.g. Mar 2025 — Present" value="${escAttr(x.dateRange)}"></div>
+        <div><label>Location (optional)</label><input data-field="experience.location" data-i="${i}" value="${escAttr(x.location)}"></div>
+      </div>
+      <label>Description (shown in popup)</label><textarea data-field="experience.desc" data-i="${i}">${x.desc||''}</textarea>
+      <label>Skills (comma-separated, shown in popup)</label><input data-field="experience.skills" data-i="${i}" value="${escAttr((x.skills||[]).join(', '))}">
+    </div>`).join('') || '<div class="hint">No experience entries yet.</div>';
+}
+function renderCertifications(){
+  const el = document.getElementById('certRows');
+  el.innerHTML = state.certifications.map((c,i) => `
+    <div class="row">
+      <div class="row-head"><span>Certification ${i+1}</span>
+        <button class="small danger" data-remove="certifications" data-i="${i}">Remove</button>
+      </div>
+      <div class="grid2">
+        <div><label>Name</label><input data-field="certifications.name" data-i="${i}" value="${escAttr(c.name)}" placeholder="e.g. AWS Certified Cloud Practitioner"></div>
+        <div><label>Issuer</label><input data-field="certifications.issuer" data-i="${i}" value="${escAttr(c.issuer)}" placeholder="e.g. Amazon Web Services"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Date</label><input data-field="certifications.date" data-i="${i}" value="${escAttr(c.date)}" placeholder="e.g. Jun 2025"></div>
+        <div><label>Credential URL (optional)</label><input data-field="certifications.credentialUrl" data-i="${i}" value="${escAttr(c.credentialUrl)}"></div>
+      </div>
+      <label>Certificate file (image or PDF)</label>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="file" accept="image/*,application/pdf" data-cert-file="${i}" style="width:auto;flex:1;min-width:180px;">
+        <button class="small" data-cert-upload="${i}">Upload</button>
+      </div>
+      <div class="status" data-cert-status="${i}" style="margin-top:6px;">${c.fileUrl ? '✓ File uploaded — <a href="'+escAttr(c.fileUrl)+'" target="_blank" style="color:var(--green);">preview</a>' : 'No file uploaded yet.'}</div>
+    </div>`).join('') || '<div class="hint">No certifications yet.</div>';
+}
+
+document.getElementById('addCert').onclick = () => {
+  state.certifications.unshift({name:'', issuer:'', date:'', credentialUrl:'', fileUrl:'', fileType:''});
+  renderCertifications();
+  renderDashboard();
+};
+
+document.addEventListener('click', async (e) => {
+  const i = e.target.dataset.certUpload;
+  if(i === undefined) return;
+  const idx = Number(i);
+  const fileInput = document.querySelector(`[data-cert-file="${idx}"]`);
+  const statusEl = document.querySelector(`[data-cert-status="${idx}"]`);
+  const file = fileInput?.files?.[0];
+  if(!file){ statusEl.textContent = 'Choose a file first.'; statusEl.className = 'status err'; return; }
+  try{
+    statusEl.textContent = 'Uploading...';
+    statusEl.className = 'status';
+    const path = `certifications/${Date.now()}-${file.name}`;
+    const fileRef = ref(storage, path);
+    await uploadBytes(fileRef, file);
+    const url = await getDownloadURL(fileRef);
+    state.certifications[idx].fileUrl = url;
+    state.certifications[idx].fileType = file.type.includes('pdf') ? 'pdf' : 'image';
+    statusEl.innerHTML = '✓ File uploaded — <a href="'+url+'" target="_blank" style="color:var(--green);">preview</a>';
+  }catch(err){
+    statusEl.textContent = 'Upload failed: ' + err.message;
+    statusEl.className = 'status err';
+  }
 });
 
 function renderBio(){
@@ -387,7 +529,7 @@ function renderProjects(){
       <label>Stack (comma-separated)</label><input data-field="projects.stack" data-i="${i}" value="${escAttr((p.stack||[]).join(', '))}">
     </div>`).join('') || '<div class="hint">No projects yet.</div>';
 }
-function renderAll(){ renderDashboard(); renderAvailability(); renderBio(); renderSkills(); renderProjects(); }
+function renderAll(){ renderDashboard(); renderAvailability(); renderExperience(); renderCertifications(); renderBio(); renderSkills(); renderProjects(); }
 function escAttr(str){ return String(str ?? '').replace(/"/g,'&quot;'); }
 
 document.addEventListener('input', (e) => {
@@ -396,7 +538,7 @@ document.addEventListener('input', (e) => {
   const i = Number(e.target.dataset.i);
   if(f === 'bio'){ state.bio[i] = e.target.value; renderDashboard(); return; }
   const [group, key] = f.split('.');
-  if(key === 'stack'){ state[group][i][key] = e.target.value.split(',').map(s=>s.trim()).filter(Boolean); }
+  if(key === 'stack' || key === 'skills'){ state[group][i][key] = e.target.value.split(',').map(s=>s.trim()).filter(Boolean); }
   else if(key === 'pct'){ state[group][i][key] = Number(e.target.value) || 0; }
   else { state[group][i][key] = e.target.value; }
 });
@@ -410,6 +552,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
+document.getElementById('addExp').onclick = () => { state.experience.unshift({title:'', company:'', dateRange:'', location:'', desc:'', skills:[]}); renderExperience(); renderDashboard(); };
 document.getElementById('addBio').onclick = () => { state.bio.push(''); renderBio(); renderDashboard(); };
 document.getElementById('addSkill').onclick = () => { state.skills.push({name:'', level:'Proficient', pct:70}); renderSkills(); renderDashboard(); };
 document.getElementById('addProject').onclick = () => { state.projects.push({title:'', meta:'', client:'', desc:'', stack:[]}); renderProjects(); renderDashboard(); };
@@ -457,6 +600,8 @@ async function loadFromFirestore(){
     const snap = await getDoc(doc(db, 'portfolio', 'content'));
     state = snap.exists() ? snap.data() : JSON.parse(JSON.stringify(DEFAULTS));
     if(!state.availability) state.availability = {status:"yes", company:""};
+    if(!Array.isArray(state.experience)) state.experience = [];
+    if(!Array.isArray(state.certifications)) state.certifications = [];
     if(!Array.isArray(state.bio)) state.bio = [];
     if(!Array.isArray(state.skills)) state.skills = [];
     if(!Array.isArray(state.projects)) state.projects = [];

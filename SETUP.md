@@ -1,6 +1,6 @@
 # Firebase Setup — Portfolio CMS
 
-Your site now has an admin page (`admin.html`) where you can log in and edit your bio, skills, and projects. The public `index.html` reads that content from Firebase automatically — until you configure Firebase, it just shows the built-in default content, so nothing breaks in the meantime.
+Your site now has an admin page (`admin.html`) where you can log in and edit your bio, skills, experience, certifications, and projects. The public `index.html` reads that content from Firebase automatically. While it's loading it shows a skeleton loading animation, and any section with no data yet shows a "No ... Added Yet" message instead of fake placeholder content — so nothing looks broken before you've configured Firebase or added your first entries.
 
 ## 1. Create a Firebase project
 
@@ -41,18 +41,39 @@ service cloud.firestore {
 
 This means: anyone can view your portfolio content, but only your logged-in account can edit it.
 
-## 5. Fill in `firebase-config.js`
+## 5. Enable Storage (for certification uploads)
+
+1. Go to **Build → Storage → Get started**.
+2. Choose **Start in production mode**, pick the same region as Firestore, click **Done**.
+3. Go to the **Rules** tab and replace the contents with:
+
+```
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /certifications/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == 'talhakazmi301@gmail.com';
+    }
+  }
+}
+```
+
+4. Click **Publish**. This lets anyone view uploaded certificates, but only your account can upload/replace them.
+
+## 6. Fill in `firebase-config.js`
 
 Open `firebase-config.js` and paste in the config values from step 2. Save the file.
 
-## 6. Try it out
+## 7. Try it out
 
 1. Open `admin.html` in your browser, log in with the email/password from step 3.
 2. Click **Load starter content** to pre-fill the form with your current bio/skills/projects.
-3. Edit anything you like, then click **Save Changes**.
-4. Open `index.html` — it should now show your updated content (refresh if it was already open).
+3. Add an experience entry or certification (upload a file for the certification — click **Upload** after choosing the file).
+4. Click **Save Changes**.
+5. Open `index.html` — it should now show your updated content (refresh if it was already open).
 
-## 7. Deploy to GitHub Pages
+## 8. Deploy to GitHub Pages
 
 Push `index.html`, `admin.html`, and `firebase-config.js` together to your repo, then enable Pages (Settings → Pages → source: main branch). Your API key being visible in the JS is normal and expected for Firebase web apps — real security comes from the Firestore rules above, not from hiding the key.
 
