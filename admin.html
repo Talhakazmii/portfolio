@@ -125,10 +125,21 @@
     border-right:1px solid var(--border);background:var(--panel);
     padding:22px 16px;display:flex;flex-direction:column;
   }
+  .sidebar-top{display:flex;align-items:center;justify-content:space-between;}
   .brand{font-family:'Space Grotesk',sans-serif;color:var(--white);font-weight:700;font-size:15px;
     display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:0 8px;}
   .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
   .sidebar-sub{font-size:11px;color:var(--text-dim);padding:0 8px;margin-bottom:26px;}
+
+  .hamburger{
+    display:none;background:none;border:1px solid var(--border);color:var(--text);
+    width:36px;height:36px;border-radius:7px;cursor:pointer;flex-shrink:0;
+    flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  }
+  .hamburger span{display:block;width:16px;height:2px;background:var(--text);transition:all .25s ease;}
+  .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+  .hamburger.open span:nth-child(2){opacity:0;}
+  .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
 
   .sidenav{display:flex;flex-direction:column;gap:3px;flex:1;}
   .sidenav a{
@@ -141,7 +152,15 @@
   .sidenav .ic{width:16px;text-align:center;}
 
   .sidebar-foot{border-top:1px solid var(--border);padding-top:14px;margin-top:14px;display:flex;flex-direction:column;gap:10px;}
-  .sidebar-foot .who{font-size:11px;color:var(--text-dim);padding:0 8px;word-break:break-all;}
+  .who-row{display:flex;align-items:center;gap:10px;padding:0 8px;}
+  .who-avatar{
+    width:36px;height:36px;border-radius:50%;flex-shrink:0;overflow:hidden;
+    background:var(--panel);border:1px solid var(--border-hi);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;color:var(--green);
+  }
+  .who-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+  .sidebar-foot .who{font-size:11px;color:var(--text-dim);word-break:break-all;min-width:0;}
   .sidebar-foot a{
     display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:7px;font-size:12.5px;
     color:var(--text-dim);border:1px solid var(--border);
@@ -225,16 +244,23 @@
 
   @media(max-width:800px){
     #app{flex-direction:column;}
-    .sidebar{width:100%;height:auto;position:relative;flex-direction:row;flex-wrap:wrap;align-items:center;}
+    .sidebar{
+      width:100%;height:auto;position:sticky;top:0;z-index:50;
+      flex-direction:column;align-items:stretch;padding:14px 16px;
+    }
+    .hamburger{display:flex;}
     .sidebar-sub{display:none;}
-    .sidenav{flex-direction:row;flex:none;}
-    .sidebar-foot{flex-direction:row;border-top:none;margin-top:0;margin-left:auto;}
+    .sidebar-collapsible{
+      max-height:0;overflow:hidden;transition:max-height .3s ease;
+    }
+    .sidebar-collapsible.open{max-height:70vh;margin-top:14px;overflow-y:auto;}
+    .sidenav{flex-direction:column;flex:none;gap:4px;}
+    .sidebar-foot{flex-direction:column;align-items:stretch;border-top:1px solid var(--border);margin-top:14px;margin-left:0;}
     .main-area{padding:24px;}
   }
   @media(max-width:560px){
     .grid2, .grid3{grid-template-columns:1fr;}
     .card{padding:18px;}
-    .sidebar-foot .who{display:none;}
     #saveBar{flex-direction:column;align-items:stretch;gap:10px;}
     #saveBtn{width:100%;}
   }
@@ -278,18 +304,45 @@
 
 <div id="app" style="display:none;">
   <aside class="sidebar">
-    <div class="brand"><span class="dot"></span> Portfolio CMS</div>
-    <div class="sidebar-sub">Manage your site content</div>
-    <nav class="sidenav">
-      <a data-view="dashboard" class="active"><span class="ic">▣</span> Dashboard</a>
-      <a data-view="config"><span class="ic">⚙</span> Site Configuration</a>
-    </nav>
-    <div class="sidebar-foot">
-      <div class="who" id="whoami"></div>
-      <a href="index.html" target="_blank">🏠 Home / View Site</a>
-      <a id="logoutBtn" href="#">↩ Log out</a>
+    <div class="sidebar-top">
+      <div class="brand"><span class="dot"></span> Portfolio CMS</div>
+      <button class="hamburger" id="adminHamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="sidebar-collapsible" id="sidebarCollapsible">
+      <div class="sidebar-sub">Manage your site content</div>
+      <nav class="sidenav">
+        <a data-view="dashboard" class="active"><span class="ic">▣</span> Dashboard</a>
+        <a data-view="config"><span class="ic">⚙</span> Site Configuration</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="who-row">
+          <div class="who-avatar" id="whoAvatar">STK</div>
+          <div class="who" id="whoami"></div>
+        </div>
+        <a href="index.html" target="_blank">🏠 Home / View Site</a>
+        <a id="logoutBtn" href="#">↩ Log out</a>
+      </div>
     </div>
   </aside>
+  <script>
+    (function(){
+      var btn = document.getElementById('adminHamburger');
+      var panel = document.getElementById('sidebarCollapsible');
+      if(!btn || !panel) return;
+      function setOpen(open){
+        panel.classList.toggle('open', open);
+        btn.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open);
+      }
+      btn.addEventListener('click', () => setOpen(!panel.classList.contains('open')));
+      // close the panel once a nav link, "home", or "log out" is tapped
+      panel.addEventListener('click', (e) => {
+        if(e.target.closest('a')) setOpen(false);
+      });
+    })();
+  </script>
 
   <main class="main-area">
 
@@ -719,6 +772,13 @@ function renderPhoto(){
   el.innerHTML = state.profilePhotoUrl
     ? `<img src="${escAttr(state.profilePhotoUrl)}" style="width:100%;height:100%;object-fit:cover;">`
     : 'No photo';
+
+  const avatar = document.getElementById('whoAvatar');
+  if(avatar){
+    avatar.innerHTML = state.profilePhotoUrl
+      ? `<img src="${escAttr(state.profilePhotoUrl)}" alt="">`
+      : 'STK';
+  }
 }
 document.getElementById('photoUploadBtn').addEventListener('click', async () => {
   const fileInput = document.getElementById('photoFile');
