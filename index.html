@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Syed Talha Ahmed Kazmi — Software Engineer</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖥️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07090a;
+    --panel:rgba(16,22,19,0.6);
+    --panel-solid:#0d1310;
+    --border:#1c2a22;
+    --border-hi:#2c4535;
+    --green:#3dffa0;
+    --green-soft:#9dffce;
+    --green-dim:#1f8c55;
+    --amber:#ffb454;
+    --cyan:#5ee7ff;
+    --text:#b9c9c0;
+    --text-dim:#5c6d64;
+    --white:#eefff5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  ::selection{background:var(--green);color:#04120a;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'JetBrains Mono', monospace;
+    line-height:1.65;
+    overflow-x:hidden;
+    cursor:default;
+  }
+  #bg-canvas{position:fixed;inset:0;z-index:0;opacity:0.55;}
+  .grain{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(61,255,160,0.025) 0px, rgba(61,255,160,0.025) 1px, transparent 1px, transparent 3px);
+    mix-blend-mode:overlay;
+  }
+  .vignette{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 0%, transparent 40%, rgba(0,0,0,0.6) 100%);
+  }
+  a{color:var(--green);text-decoration:none;}
+  .container{max-width:980px;margin:0 auto;padding:0 24px;position:relative;z-index:2;}
+
+  /* progress bar */
+  #progress{
+    position:fixed;top:0;left:0;height:2px;
+    background:linear-gradient(90deg,var(--green-dim),var(--green),var(--cyan));
+    z-index:200;width:0%;
+    box-shadow:0 0 8px var(--green);
+    transition:width .1s ease-out;
+  }
+
+  /* Nav */
+  nav{
+    position:sticky;top:0;z-index:100;
+    background:rgba(7,9,10,0.7);
+    backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid var(--border);
+  }
+  nav .container{display:flex;justify-content:space-between;align-items:center;height:62px;z-index:2;}
+  .logo{font-family:'Space Grotesk',sans-serif;color:var(--white);font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;}
+  .logo .dotpulse{
+    width:8px;height:8px;border-radius:50%;background:var(--green);
+    box-shadow:0 0 10px var(--green);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(0.8);}}
+  .navlinks{display:flex;gap:28px;font-size:12.5px;}
+  .navlinks a{color:var(--text-dim);transition:color .25s;position:relative;letter-spacing:0.3px;}
+  .navlinks a::after{
+    content:"";position:absolute;left:0;bottom:-6px;width:0;height:1px;background:var(--green);
+    transition:width .25s ease;
+  }
+  .navlinks a:hover, .navlinks a.active{color:var(--green);}
+  .navlinks a:hover::after, .navlinks a.active::after{width:100%;}
+
+  /* Hero */
+  header.hero{
+    min-height:0;
+    display:flex;flex-direction:column;justify-content:center;
+    position:relative;
+    padding:80px 0 70px;
+  }
+  @media(min-height:820px){
+    header.hero{ min-height:calc(100vh - 62px); padding:64px 0 60px; }
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    color:var(--green-dim);font-size:12px;letter-spacing:1px;
+    border:1px solid var(--border-hi);
+    padding:6px 12px;border-radius:20px;
+    margin-bottom:22px;
+    background:rgba(61,255,160,0.04);
+  }
+  .eyebrow .ping{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
+  .eyebrow.busy{color:var(--amber);border-color:#4a3a1e;background:rgba(255,180,84,0.05);}
+  .eyebrow.busy .ping{background:var(--amber);box-shadow:0 0 8px var(--amber);}
+
+  .hero-name{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(38px,7vw,68px);
+    font-weight:700;
+    letter-spacing:-1.5px;
+    line-height:1.05;
+    background:linear-gradient(135deg,var(--white) 30%,var(--green-soft) 70%,var(--green) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    margin-bottom:10px;
+  }
+  .hero-role{
+    font-size:clamp(15px,2.6vw,20px);
+    color:var(--amber);
+    margin-bottom:22px;
+    min-height:1.4em;
+  }
+  .hero-role .caret{display:inline-block;width:9px;height:1.1em;background:var(--amber);vertical-align:text-bottom;margin-left:2px;animation:blink 1s step-end infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  .hero-bio{max-width:640px;color:var(--text);font-size:14.5px;margin-bottom:32px;}
+  .hero-bio .hl{color:var(--green-soft);border-bottom:1px dashed var(--green-dim);}
+
+  .hero-links{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:56px;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1px solid var(--border-hi);
+    color:var(--text);
+    padding:11px 18px;border-radius:7px;font-size:13px;
+    transition:all .25s;position:relative;overflow:hidden;
+    background:rgba(255,255,255,0.02);
+  }
+  .btn:hover{border-color:var(--green);color:var(--white);transform:translateY(-2px);box-shadow:0 8px 24px -8px rgba(61,255,160,0.35);}
+  .btn.solid{background:var(--green);color:#04160c;font-weight:700;border-color:var(--green);}
+  .btn.solid:hover{background:var(--green-soft);box-shadow:0 8px 28px -6px rgba(61,255,160,0.55);}
+
+  .term-window{
+    border:1px solid var(--border-hi);
+    border-radius:10px;
+    background:var(--panel);
+    backdrop-filter:blur(10px);
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(61,255,160,0.03);
+    overflow:hidden;
+    max-width:640px;
+  }
+  .term-bar{
+    display:flex;align-items:center;gap:8px;padding:10px 14px;
+    background:#0c1310;border-bottom:1px solid var(--border);
+  }
+  .dot{width:11px;height:11px;border-radius:50%;}
+  .dot.red{background:#ff5f56;}
+  .dot.yellow{background:#ffbd2e;}
+  .dot.green{background:#27c93f;}
+  .term-title{margin-left:8px;color:var(--text-dim);font-size:11.5px;}
+  .term-body{padding:20px 20px 24px;font-size:13px;min-height:190px;}
+  .term-line{margin-bottom:4px;color:var(--text-dim);}
+  .term-line .p1{color:var(--green-dim);}
+  .term-line .p2{color:var(--cyan);}
+  .type-out{color:var(--green-soft);white-space:pre-wrap;}
+
+  /* Section shared */
+  section{padding:90px 0;border-top:1px solid var(--border);position:relative;}
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+
+  .sec-tag{color:var(--green-dim);font-size:12.5px;margin-bottom:8px;letter-spacing:0.5px;}
+  .sec-tag::before{content:"// ";}
+  h2.sec-title{
+    font-family:'Space Grotesk',sans-serif;
+    color:var(--white);font-size:clamp(24px,3.5vw,32px);margin-bottom:36px;font-weight:700;
+  }
+  h2.sec-title .accent{color:var(--green);}
+
+  /* About */
+  .about-text p{margin-bottom:16px;color:var(--text);font-size:14.5px;max-width:720px;}
+  .highlight{color:var(--green-soft);font-weight:600;}
+  .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:16px;margin-top:36px;}
+  .stat{border:1px solid var(--border);background:rgba(255,255,255,0.015);border-radius:8px;padding:18px;text-align:center;transition:border-color .25s;}
+  .stat:hover{border-color:var(--border-hi);}
+  .stat .num{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:var(--green);}
+  .stat .lbl{font-size:11.5px;color:var(--text-dim);margin-top:4px;letter-spacing:0.4px;}
+
+  /* Skills */
+  .skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+  .skill-chip{
+    border:1px solid var(--border);
+    background:rgba(255,255,255,0.015);
+    border-radius:8px;padding:16px 16px 14px;
+    transition:border-color .25s, transform .25s;
+  }
+  .skill-chip:hover{border-color:var(--green-dim);transform:translateY(-3px);}
+  .skill-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;color:var(--text);}
+  .skill-top .lvl{color:var(--text-dim);font-size:11px;}
+  .bar{height:4px;border-radius:4px;background:var(--border);overflow:hidden;}
+  .bar i{
+    display:block;height:100%;border-radius:4px;width:0;
+    background:linear-gradient(90deg,var(--green-dim),var(--green));
+    transition:width 1.4s cubic-bezier(.16,1,.3,1);
+  }
+
+  /* Projects */
+  .projects{display:flex;flex-direction:column;gap:22px;}
+  .project-card{
+    --mx:50%;--my:50%;
+    border:1px solid var(--border);
+    background:var(--panel-solid);
+    border-radius:12px;padding:26px 26px 24px;
+    position:relative;overflow:hidden;
+    transition:border-color .3s, transform .3s;
+  }
+  .project-card::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(300px circle at var(--mx) var(--my), rgba(61,255,160,0.08), transparent 70%);
+    opacity:0;transition:opacity .3s;pointer-events:none;
+  }
+  .project-card:hover{border-color:var(--border-hi);transform:translateY(-3px);}
+  .project-card:hover::before{opacity:1;}
+  .project-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:4px;}
+  .project-title{font-family:'Space Grotesk',sans-serif;color:var(--white);font-size:19px;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .project-title::before{content:"▹";color:var(--green);}
+  .project-meta{color:var(--text-dim);font-size:11.5px;}
+  .project-client{color:var(--amber);font-size:12.5px;margin-bottom:12px;}
+  .project-desc{color:var(--text);font-size:14px;margin-bottom:16px;position:relative;}
+  .stack{display:flex;flex-wrap:wrap;gap:8px;position:relative;}
+  .stack span{
+    font-size:11px;color:var(--green-dim);
+    border:1px solid var(--border);
+    padding:4px 10px;border-radius:20px;
+    background:rgba(61,255,160,0.03);
+  }
+
+  /* Contact */
+  .contact-box{
+    border:1px solid var(--border-hi);
+    background:linear-gradient(160deg, rgba(61,255,160,0.05), rgba(255,255,255,0.01));
+    border-radius:14px;padding:40px;text-align:left;
+    position:relative;overflow:hidden;
+  }
+  .contact-box::after{
+    content:"";position:absolute;top:-40%;right:-10%;width:280px;height:280px;
+    background:radial-gradient(circle, rgba(61,255,160,0.15), transparent 70%);
+    pointer-events:none;
+  }
+  .contact-box h3{font-family:'Space Grotesk',sans-serif;color:var(--white);font-size:22px;margin-bottom:10px;}
+  .contact-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:22px;}
+
+  footer{padding:32px 0 60px;text-align:center;color:var(--text-dim);font-size:12px;position:relative;z-index:2;}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="grain"></div>
+<div class="vignette"></div>
+<div id="progress"></div>
+
+<nav>
+  <div class="container">
+    <div class="logo"><span class="dotpulse"></span>stak<span style="color:var(--text-dim)">.dev</span></div>
+    <div class="navlinks">
+      <a href="#about" data-nav>about</a>
+      <a href="#skills" data-nav>skills</a>
+      <a href="#projects" data-nav>projects</a>
+      <a href="#contact" data-nav>contact</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <div class="eyebrow" id="availabilityBadge"><span class="ping" id="availabilityDot"></span> <span id="availabilityText">AVAILABLE FOR OPPORTUNITIES</span></div>
+    <div class="hero-name">Syed Talha<br>Ahmed Kazmi</div>
+    <div class="hero-role">&gt; <span id="roleType"></span><span class="caret"></span></div>
+    <p class="hero-bio">
+      Building enterprise-grade systems on <span class="hl">.NET</span> with <span class="hl">Clean Architecture</span> —
+      wiring services together with <span class="hl">gRPC</span>, <span class="hl">REST</span>,
+      <span class="hl">NATS</span>, and real-time <span class="hl">WebSockets</span>, and shipping
+      <span class="hl">React</span> front-ends on top. Delivered production systems across the GCC,
+      several deeply integrated with <span class="hl">SAP</span>.
+    </p>
+    <div class="hero-links">
+      <a href="#projects" class="btn solid">View Projects →</a>
+      <a href="#contact" class="btn">Get In Touch</a>
+      <a href="mailto:talhakazmi301@gmail.com" class="btn">✉ Email</a>
+    </div>
+
+    <div class="term-window">
+      <div class="term-bar">
+        <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+        <div class="term-title">talha@portfolio — zsh — 80×20</div>
+      </div>
+      <div class="term-body">
+        <div class="term-line"><span class="p1">talha@dev</span> <span class="p2">~</span> % git log --oneline -4</div>
+        <div class="term-line">a1f3c9d <span class="type-out" id="l1"></span></div>
+        <div class="term-line">7c02e11 <span class="type-out" id="l2"></span></div>
+        <div class="term-line">e59ab04 <span class="type-out" id="l3"></span></div>
+        <div class="term-line">3ff10bd <span class="type-out" id="l4"></span></div>
+        <div class="term-line" style="margin-top:10px;"><span class="p1">talha@dev</span> <span class="p2">~</span> % <span class="caret" style="background:var(--green)"></span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="about">
+  <div class="container reveal">
+    <div class="sec-tag">whoami --verbose</div>
+    <h2 class="sec-title">About <span class="accent">Me</span></h2>
+    <div class="about-text" id="bioContent">
+      <p>
+        I'm a software engineer who works across the stack — from integrating enterprise SAP EDI pipelines
+        to designing service-to-service communication with gRPC, and building responsive React interfaces
+        on top. My focus has largely been on Clean Architecture backends in .NET, wiring together REST APIs,
+        gRPC microservices, NATS-based messaging, and WebSockets for real-time features.
+      </p>
+      <p>
+        I've shipped production systems for clients in the GCC region (Saudi Arabia and Oman), working on
+        everything from CRM platforms and HR management tools to invoice/procurement systems and budget &
+        asset management software — several of them integrated directly with SAP.
+      </p>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="num">4+</div><div class="lbl">PRODUCTION SYSTEMS</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">COUNTRIES SERVED</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">SAP INTEGRATIONS</div></div>
+      <div class="stat"><div class="num">100%</div><div class="lbl">CLEAN ARCHITECTURE</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="container reveal">
+    <div class="sec-tag">ls ./skills --sort=proficiency</div>
+    <h2 class="sec-title">Tech <span class="accent">Stack</span></h2>
+    <div class="skills-grid" id="skillsGrid">
+      <div class="skill-chip"><div class="skill-top"><span>.NET / C#</span><span class="lvl">Expert</span></div><div class="bar"><i data-w="95"></i></div></div>
+      <div class="skill-chip"><div class="skill-top"><span>Clean Architecture</span><span class="lvl">Expert</span></div><div class="bar"><i data-w="92"></i></div></div>
+      <div class="skill-chip"><div class="skill-top"><span>gRPC</span><span class="lvl">Advanced</span></div><div class="bar"><i data-w="88"></i></div></div>
+      <div class="skill-chip"><div class="skill-top"><span>REST APIs</span><span class="lvl">Expert</span></div><div class="bar"><i data-w="93"></i></div></div>
+      <div class="skill-chip"><div class="skill-top"><span>NATS</span><span class="lvl">Advanced</span></div><div class="bar"><i data-w="82"></i></div></div>
+      <div class="skill-chip"><div class="skill-top"><span>WebSockets</span><span class="lvl">Advanced</span></div><div class="bar"><i data-w="85"></i></div></div>
+      <div class="skill-chip"><div class="skill-top"><span>SAP EDI Integration</span><span class="lvl">Advanced</span></div><div class="bar"><i data-w="87"></i></div></div>
+      <div class="skill-chip"><div class="skill-top"><span>React</span><span class="lvl">Proficient</span></div><div class="bar"><i data-w="78"></i></div></div>
+      <div class="skill-chip"><div class="skill-top"><span>Microservices</span><span class="lvl">Advanced</span></div><div class="bar"><i data-w="86"></i></div></div>
+      <div class="skill-chip"><div class="skill-top"><span>SQL Server</span><span class="lvl">Proficient</span></div><div class="bar"><i data-w="80"></i></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="container reveal">
+    <div class="sec-tag">git log --oneline --projects</div>
+    <h2 class="sec-title">Featured <span class="accent">Projects</span></h2>
+    <div class="projects" id="projectsList">
+
+      <div class="project-card" data-tilt>
+        <div class="project-head">
+          <div class="project-title">AGeek CRM</div>
+          <div class="project-meta">Dec — Mar</div>
+        </div>
+        <div class="project-client">Client: Shakir Groups — Saudi Arabia</div>
+        <p class="project-desc">
+          A CRM platform built on Clean Architecture, with internal services communicating over gRPC.
+          Delivered end-to-end for the client's sales and customer management operations.
+        </p>
+        <div class="stack"><span>.NET</span><span>Clean Architecture</span><span>gRPC</span></div>
+      </div>
+
+      <div class="project-card" data-tilt>
+        <div class="project-head">
+          <div class="project-title">HR Management System</div>
+        </div>
+        <div class="project-client">Product of Qbs Co. Ltd</div>
+        <p class="project-desc">
+          A smart HR management product enabling organizations to track employee history and manage
+          HR operations end-to-end, built with .NET and gRPC-based service communication.
+        </p>
+        <div class="stack"><span>.NET</span><span>gRPC</span><span>HR Tech</span></div>
+      </div>
+
+      <div class="project-card" data-tilt>
+        <div class="project-head">
+          <div class="project-title">WasalHub</div>
+        </div>
+        <div class="project-client">Client: Oman</div>
+        <p class="project-desc">
+          An invoice management system integrated with SAP, designed to give users a friction-free,
+          user-friendly procurement lifecycle from request through to invoicing.
+        </p>
+        <div class="stack"><span>SAP Integration</span><span>Procurement</span><span>.NET</span></div>
+      </div>
+
+      <div class="project-card" data-tilt>
+        <div class="project-head">
+          <div class="project-title">MuntQ</div>
+        </div>
+        <div class="project-client">Client: Saudi Arabia</div>
+        <p class="project-desc">
+          A budget and asset management system integrated with SAP, giving organizations budget
+          assessment tools and a streamlined asset request workflow.
+        </p>
+        <div class="stack"><span>SAP Integration</span><span>Budgeting</span><span>Asset Management</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="container reveal">
+    <div class="sec-tag">contact --init</div>
+    <h2 class="sec-title">Get In <span class="accent">Touch</span></h2>
+    <div class="contact-box">
+      <h3>Let's build something reliable.</h3>
+      <p style="color:var(--text);font-size:14px;max-width:520px;">Open to new opportunities and collaborations across backend systems, microservices, and integration engineering — reach out any time.</p>
+      <div class="contact-links">
+        <a href="mailto:talhakazmi301@gmail.com" class="btn solid">✉ talhakazmi301@gmail.com</a>
+        <a href="https://github.com/Talhakazmii" target="_blank" rel="noopener" class="btn">⌥ GitHub</a>
+        <a href="https://www.linkedin.com/in/syed-talha-ahmed-kazmi-054184284/" target="_blank" rel="noopener" class="btn">in LinkedIn</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">© <span id="year"></span> Syed Talha Ahmed Kazmi — built with <span style="color:var(--green)">&lt;/&gt;</span> and too much coffee · <a href="admin.html" style="color:var(--text-dim);">admin</a></div>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+/* ---------- scroll progress + active nav ---------- */
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = pct + '%';
+});
+
+const navLinks = document.querySelectorAll('[data-nav]');
+const sections = ['about','skills','projects','contact'].map(id => document.getElementById(id));
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector('[href="#'+entry.target.id+'"]');
+      if(link) link.classList.add('active');
+    }
+  });
+}, {rootMargin:'-40% 0px -55% 0px'});
+sections.forEach(s => s && navObserver.observe(s));
+
+/* ---------- reveal on scroll ---------- */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, {threshold:0.15});
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+/* ---------- skill bars fill on visibility ---------- */
+const barObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.querySelectorAll('.bar i').forEach(bar => {
+        bar.style.width = bar.dataset.w + '%';
+      });
+      barObserver.unobserve(entry.target);
+    }
+  });
+}, {threshold:0.2});
+const skillsSection = document.getElementById('skills');
+if(skillsSection) barObserver.observe(skillsSection);
+
+/* ---------- role typing effect ---------- */
+const roles = [
+  'Associate Software Engineer',
+  '.NET & Clean Architecture',
+  'gRPC · REST · NATS · WebSockets',
+  'SAP EDI Integration Specialist'
+];
+const roleEl = document.getElementById('roleType');
+let ri = 0, ci = 0, deleting = false;
+function tickRole(){
+  const word = roles[ri];
+  if(!deleting){
+    ci++;
+    roleEl.textContent = word.slice(0, ci);
+    if(ci === word.length){ deleting = true; setTimeout(tickRole, 1400); return; }
+  } else {
+    ci--;
+    roleEl.textContent = word.slice(0, ci);
+    if(ci === 0){ deleting = false; ri = (ri+1) % roles.length; }
+  }
+  setTimeout(tickRole, deleting ? 35 : 55);
+}
+tickRole();
+
+/* ---------- git log lines typing effect ---------- */
+const gitLines = [
+  'feat(crm): deliver AGeek to Shakir Groups (KSA)',
+  'feat(hr): ship smart HR tracking module — Qbs Co.',
+  'feat(wasalhub): integrate SAP procurement flow — Oman',
+  'feat(muntq): add budget & asset request workflow — KSA'
+];
+function typeLine(el, text, delay){
+  let i = 0;
+  setTimeout(function step(){
+    el.textContent = text.slice(0, i);
+    i++;
+    if(i <= text.length) setTimeout(step, 18);
+  }, delay);
+}
+typeLine(document.getElementById('l1'), gitLines[0], 300);
+typeLine(document.getElementById('l2'), gitLines[1], 300 + gitLines[0].length*18 + 200);
+typeLine(document.getElementById('l3'), gitLines[2], 300 + (gitLines[0].length+gitLines[1].length)*18 + 400);
+typeLine(document.getElementById('l4'), gitLines[3], 300 + (gitLines[0].length+gitLines[1].length+gitLines[2].length)*18 + 600);
+
+/* ---------- project card spotlight ---------- */
+document.querySelectorAll('[data-tilt]').forEach(card => {
+  card.addEventListener('mousemove', (e) => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+    card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+  });
+});
+
+/* ---------- network background canvas ---------- */
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, nodes = [];
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = Math.max(window.innerHeight, document.body.scrollHeight);
+}
+function initNodes(){
+  const count = Math.min(70, Math.floor((W*H)/28000));
+  nodes = Array.from({length:count}, () => ({
+    x: Math.random()*W, y: Math.random()*H,
+    vx: (Math.random()-0.5)*0.25, vy:(Math.random()-0.5)*0.25
+  }));
+}
+resize(); initNodes();
+window.addEventListener('resize', () => { resize(); initNodes(); });
+
+function drawNetwork(){
+  ctx.clearRect(0,0,W,H);
+  const viewTop = window.scrollY, viewBottom = viewTop + window.innerHeight;
+  for(const n of nodes){
+    n.x += n.vx; n.y += n.vy;
+    if(n.x < 0 || n.x > W) n.vx *= -1;
+    if(n.y < 0 || n.y > H) n.vy *= -1;
+  }
+  for(let i=0;i<nodes.length;i++){
+    const a = nodes[i];
+    if(a.y < viewTop-100 || a.y > viewBottom+100) continue;
+    for(let j=i+1;j<nodes.length;j++){
+      const b = nodes[j];
+      const dx = a.x-b.x, dy = a.y-b.y;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      if(dist < 140){
+        ctx.strokeStyle = `rgba(61,255,160,${0.12*(1-dist/140)})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+        ctx.stroke();
+      }
+    }
+    ctx.fillStyle = 'rgba(61,255,160,0.5)';
+    ctx.beginPath();
+    ctx.arc(a.x,a.y,1.6,0,Math.PI*2);
+    ctx.fill();
+  }
+  requestAnimationFrame(drawNetwork);
+}
+drawNetwork();
+</script>
+
+<!-- Firebase config: fill in your project's keys in firebase-config.js -->
+<script src="firebase-config.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function attachTilt(card){
+    card.addEventListener('mousemove', (e) => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  }
+
+  async function loadContent(){
+    if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') return; // not configured yet, keep static fallback
+    try{
+      const app = initializeApp(window.FIREBASE_CONFIG);
+      const db = getFirestore(app);
+      const snap = await getDoc(doc(db, 'portfolio', 'content'));
+      if(!snap.exists()) return;
+      const data = snap.data();
+
+      if(data.availability && data.availability.status){
+        const badge = document.getElementById('availabilityBadge');
+        const textEl = document.getElementById('availabilityText');
+        if(data.availability.status === 'no'){
+          badge.classList.add('busy');
+          textEl.textContent = 'CURRENTLY AT ' + (data.availability.company || 'A COMPANY').toUpperCase();
+        } else {
+          badge.classList.remove('busy');
+          textEl.textContent = 'AVAILABLE FOR OPPORTUNITIES';
+        }
+      }
+
+      if(Array.isArray(data.bio) && data.bio.length){
+        document.getElementById('bioContent').innerHTML =
+          data.bio.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+      }
+
+      if(Array.isArray(data.skills) && data.skills.length){
+        const grid = document.getElementById('skillsGrid');
+        grid.innerHTML = data.skills.map(s => `
+          <div class="skill-chip">
+            <div class="skill-top"><span>${escapeHtml(s.name)}</span><span class="lvl">${escapeHtml(s.level)}</span></div>
+            <div class="bar"><i data-w="${Number(s.pct)||0}"></i></div>
+          </div>`).join('');
+        grid.querySelectorAll('.bar i').forEach(bar => { bar.style.width = bar.dataset.w + '%'; });
+      }
+
+      if(Array.isArray(data.projects) && data.projects.length){
+        const list = document.getElementById('projectsList');
+        list.innerHTML = data.projects.map(p => `
+          <div class="project-card" data-tilt>
+            <div class="project-head">
+              <div class="project-title">${escapeHtml(p.title)}</div>
+              <div class="project-meta">${escapeHtml(p.meta)}</div>
+            </div>
+            <div class="project-client">${escapeHtml(p.client)}</div>
+            <p class="project-desc">${escapeHtml(p.desc)}</p>
+            <div class="stack">${(p.stack||[]).map(t => `<span>${escapeHtml(t)}</span>`).join('')}</div>
+          </div>`).join('');
+        list.querySelectorAll('[data-tilt]').forEach(attachTilt);
+      }
+    }catch(e){
+      console.warn('Live content unavailable, showing default content:', e);
+    }
+  }
+  loadContent();
+</script>
+
+</body>
+</html>

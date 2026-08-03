@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Portfolio CMS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07090a; --panel:#0d1310; --border:#1c2a22; --border-hi:#2c4535;
+    --green:#3dffa0; --green-soft:#9dffce; --green-dim:#1f8c55;
+    --amber:#ffb454; --red:#ff6b6b;
+    --text:#b9c9c0; --text-dim:#5c6d64; --white:#eefff5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;line-height:1.6;min-height:100vh;}
+  .wrap{max-width:880px;margin:0 auto;padding:40px 24px 100px;}
+  h1{font-family:'Space Grotesk',sans-serif;color:var(--white);font-size:26px;margin-bottom:6px;}
+  .sub{color:var(--text-dim);font-size:13px;margin-bottom:32px;}
+  .sub a{color:var(--green);}
+
+  /* Login */
+  #loginBox{
+    max-width:380px;margin:80px auto 0;
+    border:1px solid var(--border-hi);background:var(--panel);
+    border-radius:12px;padding:32px;
+  }
+  #loginBox h2{font-family:'Space Grotesk',sans-serif;color:var(--white);font-size:19px;margin-bottom:18px;}
+  label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;margin-top:14px;}
+  input, textarea, select{
+    width:100%;background:#0b100e;border:1px solid var(--border);color:var(--white);
+    border-radius:6px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:13.5px;
+  }
+  input:focus, textarea:focus, select:focus{outline:none;border-color:var(--green-dim);}
+  textarea{resize:vertical;min-height:70px;}
+  button{
+    font-family:'JetBrains Mono',monospace;cursor:pointer;
+    border:1px solid var(--border-hi);background:rgba(255,255,255,0.02);color:var(--text);
+    padding:10px 18px;border-radius:7px;font-size:13px;transition:all .2s;
+  }
+  button:hover{border-color:var(--green);color:var(--white);}
+  button.primary{background:var(--green);color:#04160c;font-weight:700;border-color:var(--green);}
+  button.primary:hover{background:var(--green-soft);}
+  button.danger{border-color:#4a2323;color:var(--red);}
+  button.danger:hover{border-color:var(--red);background:rgba(255,107,107,0.08);}
+  button.small{padding:6px 12px;font-size:12px;}
+  #loginBtn{width:100%;margin-top:20px;}
+  #loginError{color:var(--red);font-size:12.5px;margin-top:10px;min-height:1em;}
+
+  /* Dashboard */
+  #dash{display:none;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;}
+  .status{font-size:12.5px;color:var(--green-dim);min-height:1.2em;}
+  .status.err{color:var(--red);}
+
+  .card{
+    border:1px solid var(--border);background:var(--panel);border-radius:10px;
+    padding:22px 24px;margin-bottom:24px;
+  }
+  .card h2{font-family:'Space Grotesk',sans-serif;color:var(--white);font-size:17px;margin-bottom:4px;}
+  .card .hint{color:var(--text-dim);font-size:12px;margin-bottom:16px;}
+
+  .row{
+    border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:12px;
+    background:rgba(255,255,255,0.012);
+  }
+  .row-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .row-head span{font-size:11.5px;color:var(--text-dim);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;}
+
+  .actions{display:flex;gap:10px;margin-top:8px;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  #saveBar{
+    position:sticky;bottom:0;left:0;right:0;
+    background:rgba(7,9,10,0.9);backdrop-filter:blur(10px);
+    border-top:1px solid var(--border-hi);
+    padding:16px 0;display:flex;justify-content:space-between;align-items:center;gap:16px;
+    margin-top:10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>Portfolio CMS</h1>
+  <div class="sub">Edit your bio, skills, and projects — changes go live on <a href="index.html">your site</a> immediately.</div>
+
+  <div id="loginBox">
+    <h2>Sign in</h2>
+    <label>Email</label>
+    <input type="email" id="email" placeholder="you@example.com" autocomplete="username">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+    <button id="loginBtn" class="primary">Log In</button>
+    <div id="loginError"></div>
+  </div>
+
+  <div id="dash">
+    <div class="topbar">
+      <div class="status" id="whoami"></div>
+      <button id="logoutBtn" class="small">Log out</button>
+    </div>
+
+    <!-- AVAILABILITY -->
+    <div class="card">
+      <h2>Availability</h2>
+      <div class="hint">Shown as the badge at the top of your site.</div>
+      <div style="display:flex;gap:20px;align-items:center;margin-top:4px;">
+        <label style="display:inline-flex;align-items:center;gap:6px;margin:0;font-size:13px;color:var(--text);">
+          <input type="radio" name="availStatus" id="availYes" style="width:auto;"> Available for opportunities
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:6px;margin:0;font-size:13px;color:var(--text);">
+          <input type="radio" name="availStatus" id="availNo" style="width:auto;"> Not available
+        </label>
+      </div>
+      <div id="companyField" style="display:none;">
+        <label>Current company</label>
+        <input type="text" id="companyInput" placeholder="e.g. Acme Corp">
+      </div>
+    </div>
+
+    <!-- BIO -->
+    <div class="card">
+      <h2>Bio</h2>
+      <div class="hint">Each entry becomes one paragraph on the About section.</div>
+      <div id="bioRows"></div>
+      <div class="toolbar">
+        <button id="addBio" class="small">+ Add paragraph</button>
+      </div>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="card">
+      <h2>Skills</h2>
+      <div class="hint">Name, proficiency label (e.g. Expert / Advanced / Proficient), and bar percentage (0–100).</div>
+      <div id="skillRows"></div>
+      <div class="toolbar">
+        <button id="addSkill" class="small">+ Add skill</button>
+      </div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="card">
+      <h2>Projects</h2>
+      <div class="hint">Stack tags are comma-separated (e.g. .NET, gRPC, SAP Integration).</div>
+      <div id="projectRows"></div>
+      <div class="toolbar">
+        <button id="addProject" class="small">+ Add project</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button id="loadDefaults">Load starter content</button>
+      <button id="reloadLive">Reload from live site</button>
+    </div>
+
+    <div id="saveBar">
+      <div class="status" id="saveStatus"></div>
+      <button id="saveBtn" class="primary">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+if(!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
+  document.getElementById('loginBox').innerHTML =
+    '<h2>Not configured yet</h2><p style="font-size:13px;color:var(--text-dim);">Fill in firebase-config.js with your Firebase project keys first (see SETUP.md), then reload this page.</p>';
+} else {
+
+const app = initializeApp(window.FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const ADMIN_EMAIL = window.ADMIN_EMAIL || '';
+
+const DEFAULTS = {
+  availability: { status: "yes", company: "" },
+  bio: [
+    "I'm a software engineer who works across the stack — from integrating enterprise SAP EDI pipelines to designing service-to-service communication with gRPC, and building responsive React interfaces on top. My focus has largely been on Clean Architecture backends in .NET, wiring together REST APIs, gRPC microservices, NATS-based messaging, and WebSockets for real-time features.",
+    "I've shipped production systems for clients in the GCC region (Saudi Arabia and Oman), working on everything from CRM platforms and HR management tools to invoice/procurement systems and budget & asset management software — several of them integrated directly with SAP."
+  ],
+  skills: [
+    {name:".NET / C#", level:"Expert", pct:95},
+    {name:"Clean Architecture", level:"Expert", pct:92},
+    {name:"gRPC", level:"Advanced", pct:88},
+    {name:"REST APIs", level:"Expert", pct:93},
+    {name:"NATS", level:"Advanced", pct:82},
+    {name:"WebSockets", level:"Advanced", pct:85},
+    {name:"SAP EDI Integration", level:"Advanced", pct:87},
+    {name:"React", level:"Proficient", pct:78},
+    {name:"Microservices", level:"Advanced", pct:86},
+    {name:"SQL Server", level:"Proficient", pct:80}
+  ],
+  projects: [
+    {title:"AGeek CRM", meta:"Dec — Mar", client:"Client: Shakir Groups — Saudi Arabia",
+     desc:"A CRM platform built on Clean Architecture, with internal services communicating over gRPC. Delivered end-to-end for the client's sales and customer management operations.",
+     stack:[".NET","Clean Architecture","gRPC"]},
+    {title:"HR Management System", meta:"", client:"Product of Qbs Co. Ltd",
+     desc:"A smart HR management product enabling organizations to track employee history and manage HR operations end-to-end, built with .NET and gRPC-based service communication.",
+     stack:[".NET","gRPC","HR Tech"]},
+    {title:"WasalHub", meta:"", client:"Client: Oman",
+     desc:"An invoice management system integrated with SAP, designed to give users a friction-free, user-friendly procurement lifecycle from request through to invoicing.",
+     stack:["SAP Integration","Procurement",".NET"]},
+    {title:"MuntQ", meta:"", client:"Client: Saudi Arabia",
+     desc:"A budget and asset management system integrated with SAP, giving organizations budget assessment tools and a streamlined asset request workflow.",
+     stack:["SAP Integration","Budgeting","Asset Management"]}
+  ]
+};
+
+let state = { availability:{status:"yes",company:""}, bio:[], skills:[], projects:[] };
+
+/* ---------- render functions ---------- */
+function renderAvailability(){
+  const a = state.availability || {status:"yes", company:""};
+  document.getElementById('availYes').checked = a.status !== 'no';
+  document.getElementById('availNo').checked = a.status === 'no';
+  document.getElementById('companyInput').value = a.company || '';
+  document.getElementById('companyField').style.display = a.status === 'no' ? 'block' : 'none';
+}
+document.getElementById('availYes').addEventListener('change', () => {
+  state.availability.status = 'yes';
+  document.getElementById('companyField').style.display = 'none';
+});
+document.getElementById('availNo').addEventListener('change', () => {
+  state.availability.status = 'no';
+  document.getElementById('companyField').style.display = 'block';
+});
+document.getElementById('companyInput').addEventListener('input', (e) => {
+  state.availability.company = e.target.value;
+});
+
+function renderBio(){
+  const el = document.getElementById('bioRows');
+  el.innerHTML = state.bio.map((p,i) => `
+    <div class="row">
+      <div class="row-head"><span>Paragraph ${i+1}</span>
+        <button class="small danger" data-remove="bio" data-i="${i}">Remove</button>
+      </div>
+      <textarea data-field="bio" data-i="${i}">${p}</textarea>
+    </div>`).join('') || '<div class="hint">No paragraphs yet.</div>';
+}
+function renderSkills(){
+  const el = document.getElementById('skillRows');
+  el.innerHTML = state.skills.map((s,i) => `
+    <div class="row">
+      <div class="row-head"><span>Skill ${i+1}</span>
+        <button class="small danger" data-remove="skills" data-i="${i}">Remove</button>
+      </div>
+      <div class="grid3">
+        <div><label>Name</label><input data-field="skills.name" data-i="${i}" value="${escAttr(s.name)}"></div>
+        <div><label>Level</label><input data-field="skills.level" data-i="${i}" value="${escAttr(s.level)}"></div>
+        <div><label>Bar %</label><input type="number" min="0" max="100" data-field="skills.pct" data-i="${i}" value="${s.pct}"></div>
+      </div>
+    </div>`).join('') || '<div class="hint">No skills yet.</div>';
+}
+function renderProjects(){
+  const el = document.getElementById('projectRows');
+  el.innerHTML = state.projects.map((p,i) => `
+    <div class="row">
+      <div class="row-head"><span>Project ${i+1}</span>
+        <button class="small danger" data-remove="projects" data-i="${i}">Remove</button>
+      </div>
+      <div class="grid2">
+        <div><label>Title</label><input data-field="projects.title" data-i="${i}" value="${escAttr(p.title)}"></div>
+        <div><label>Meta (dates, optional)</label><input data-field="projects.meta" data-i="${i}" value="${escAttr(p.meta)}"></div>
+      </div>
+      <label>Client</label><input data-field="projects.client" data-i="${i}" value="${escAttr(p.client)}">
+      <label>Description</label><textarea data-field="projects.desc" data-i="${i}">${p.desc}</textarea>
+      <label>Stack (comma-separated)</label><input data-field="projects.stack" data-i="${i}" value="${escAttr((p.stack||[]).join(', '))}">
+    </div>`).join('') || '<div class="hint">No projects yet.</div>';
+}
+function renderAll(){ renderAvailability(); renderBio(); renderSkills(); renderProjects(); }
+function escAttr(str){ return String(str ?? '').replace(/"/g,'&quot;'); }
+
+document.addEventListener('input', (e) => {
+  const f = e.target.dataset.field;
+  if(!f) return;
+  const i = Number(e.target.dataset.i);
+  if(f === 'bio'){ state.bio[i] = e.target.value; return; }
+  const [group, key] = f.split('.');
+  if(key === 'stack'){ state[group][i][key] = e.target.value.split(',').map(s=>s.trim()).filter(Boolean); }
+  else if(key === 'pct'){ state[group][i][key] = Number(e.target.value) || 0; }
+  else { state[group][i][key] = e.target.value; }
+});
+
+document.addEventListener('click', (e) => {
+  const rm = e.target.dataset.remove;
+  if(rm){
+    const i = Number(e.target.dataset.i);
+    state[rm].splice(i,1);
+    renderAll();
+  }
+});
+
+document.getElementById('addBio').onclick = () => { state.bio.push(''); renderBio(); };
+document.getElementById('addSkill').onclick = () => { state.skills.push({name:'', level:'Proficient', pct:70}); renderSkills(); };
+document.getElementById('addProject').onclick = () => { state.projects.push({title:'', meta:'', client:'', desc:'', stack:[]}); renderProjects(); };
+
+document.getElementById('loadDefaults').onclick = () => {
+  state = JSON.parse(JSON.stringify(DEFAULTS));
+  renderAll();
+  setSaveStatus('Loaded starter content — remember to Save.', false);
+};
+
+document.getElementById('reloadLive').onclick = async () => {
+  await loadFromFirestore();
+  setSaveStatus('Reloaded from live site.', false);
+};
+
+/* ---------- auth ---------- */
+document.getElementById('loginBtn').onclick = async () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  try{
+    await signInWithEmailAndPassword(auth, email, password);
+  }catch(e){
+    errEl.textContent = e.message.replace('Firebase: ','');
+  }
+};
+document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    document.getElementById('whoami').textContent = 'Signed in as ' + user.email;
+    await loadFromFirestore();
+  } else {
+    document.getElementById('loginBox').style.display = 'block';
+    document.getElementById('dash').style.display = 'none';
+  }
+});
+
+async function loadFromFirestore(){
+  try{
+    const snap = await getDoc(doc(db, 'portfolio', 'content'));
+    state = snap.exists() ? snap.data() : JSON.parse(JSON.stringify(DEFAULTS));
+    if(!state.availability) state.availability = {status:"yes", company:""};
+    if(!Array.isArray(state.bio)) state.bio = [];
+    if(!Array.isArray(state.skills)) state.skills = [];
+    if(!Array.isArray(state.projects)) state.projects = [];
+    renderAll();
+  }catch(e){
+    setSaveStatus('Could not load content: ' + e.message, true);
+  }
+}
+
+function setSaveStatus(msg, isErr){
+  const el = document.getElementById('saveStatus');
+  el.textContent = msg;
+  el.className = 'status' + (isErr ? ' err' : '');
+}
+
+document.getElementById('saveBtn').onclick = async () => {
+  if(ADMIN_EMAIL && auth.currentUser?.email !== ADMIN_EMAIL){
+    setSaveStatus('This account is not authorized to save changes.', true);
+    return;
+  }
+  try{
+    setSaveStatus('Saving...', false);
+    await setDoc(doc(db, 'portfolio', 'content'), state);
+    setSaveStatus('Saved — live site updated ✓', false);
+  }catch(e){
+    setSaveStatus('Save failed: ' + e.message, true);
+  }
+};
+
+}
+</script>
+
+</body>
+</html>
